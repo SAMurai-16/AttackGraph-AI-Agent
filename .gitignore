@@ -1,0 +1,46 @@
+# .gitignore for Splunk app workspace
+# Ignore local Splunk-managed configs and common editor/OS artifacts
+
+# Splunk local config (should not be committed)
+local/
+
+# Logs, backups, packages
+*.log
+*.bak
+*.zip
+*.tar.gz
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# Node
+node_modules/
+
+# Environment files
+.env
+.env.*
+
+# Editor/IDE
+.vscode/
+.idea/
+*.iml
+
+# OS files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+
+# Swap, temp
+*.swp
+*.swo
+
+# Metadata often local to developer or Splunk
+metadata/local.meta
