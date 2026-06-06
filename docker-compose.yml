@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  neo4j:
+    image: neo4j:5.12
+    container_name: attackgraph-neo4j
+    ports:
+      - "7474:7474"  # HTTP (Browser UI)
+      - "7687:7687"  # Bolt protocol
+    environment:
+      - NEO4J_AUTH=neo4j/hackathon2026
+      - NEO4J_PLUGINS=["apoc"]  # APOC is crucial for graph analytics
+    volumes:
+      - ./neo4j/data:/data
+      - ./neo4j/logs:/logs
+      - ./neo4j/import:/var/lib/neo4j/import
+      - ./neo4j/plugins:/plugins

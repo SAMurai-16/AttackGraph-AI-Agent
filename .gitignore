@@ -44,3 +44,6 @@ ehthumbs.db
 
 # Metadata often local to developer or Splunk
 metadata/local.meta
+
+# Neo4j Data Volumes
+neo4j/
