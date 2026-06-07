@@ -1,0 +1,27 @@
+{
+    "neo4j_execute_cypher": {
+        "properties": {
+            "query": {
+                "title": "Cypher Query",
+                "description": "The Cypher query to execute against the Neo4j database. Ensure it is valid Cypher syntax.",
+                "type": "text",
+                "required": "true",
+                "pattern": "string",
+                "examples": [
+                    "MATCH (n) RETURN n LIMIT 5",
+                    "MATCH (u:User {name: 'alice'})-[:LOGGED_INTO]->(h:Host) RETURN h"
+                ],
+                "meta": {
+                    "validation_message": "Query must be provided as a string."
+                }
+            }
+        },
+        "title": "Input",
+        "type": "object"
+    },
+    "neo4j_get_schema": {
+        "properties": {},
+        "title": "Input",
+        "type": "object"
+    }
+}

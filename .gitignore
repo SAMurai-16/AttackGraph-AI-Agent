@@ -47,3 +47,6 @@ metadata/local.meta
 
 # Neo4j Data Volumes
 neo4j/
+
+# Splunk backup directories
+default.old.*/
