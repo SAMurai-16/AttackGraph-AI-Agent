@@ -1,6 +1,0 @@
-neo4j
-splunk-sdk
-python-dotenv
-openai
-langchain
-langchain-openai

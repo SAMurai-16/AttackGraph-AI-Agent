@@ -1,0 +1,8 @@
+splunk-sdk
+python-dotenv
+openai
+langchain
+langchain_google_genai
+langgraph
+mcp 
+httpx
