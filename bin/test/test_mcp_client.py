@@ -1,9 +1,9 @@
 import os
 import httpx
 import json
-# from dotenv import load_dotenv
+from dotenv import load_dotenv
 
-# load_dotenv()
+load_dotenv()
 
 def main():
     # 1. Get the Splunk Auth Token from the environment

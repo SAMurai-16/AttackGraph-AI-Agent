@@ -1,17 +1,40 @@
 import networkx as nx
 import json
 
-# Global in-memory graph that will persist as long as the Splunk persistconn python process is alive!
-G = nx.MultiDiGraph()
+import os
+
+GRAPH_FILE = os.path.join(os.path.dirname(__file__), "graph.json")
+
+def _load_graph():
+    if os.path.exists(GRAPH_FILE):
+        try:
+            with open(GRAPH_FILE, 'r') as f:
+                data = json.load(f)
+                return nx.node_link_graph(data)
+        except:
+            pass
+    return nx.MultiDiGraph()
+
+def _save_graph(g):
+    with open(GRAPH_FILE, 'w') as f:
+        json.dump(nx.node_link_data(g), f)
+
+# Initialize
+G = _load_graph()
 
 def add_node_tool(node_id: str, label: str, properties: dict) -> dict:
     """Add a node to the knowledge graph."""
+    global G
+    G = _load_graph()
     properties['label'] = label
     G.add_node(node_id, **properties)
+    _save_graph(G)
     return {"status": "success", "node_id": node_id, "properties": properties}
 
 def add_edge_tool(source_id: str, target_id: str, edge_type: str, properties: dict) -> dict:
     """Add a directed edge between two nodes."""
+    global G
+    G = _load_graph()
     # Ensure nodes exist
     if not G.has_node(source_id):
         G.add_node(source_id, label="Unknown")
@@ -20,15 +43,20 @@ def add_edge_tool(source_id: str, target_id: str, edge_type: str, properties: di
         
     properties['edge_type'] = edge_type
     G.add_edge(source_id, target_id, **properties)
+    _save_graph(G)
     return {"status": "success", "source_id": source_id, "target_id": target_id, "edge_type": edge_type}
 
 def get_patient_zero_tool() -> dict:
     """Find patient zero (nodes with in-degree 0)."""
+    global G
+    G = _load_graph()
     patient_zeros = [n for n, in_degree in G.in_degree() if in_degree == 0]
     return {"status": "success", "patient_zeros": patient_zeros}
 
 def get_shortest_path_tool(source_id: str, target_id: str) -> dict:
     """Find shortest path between two nodes."""
+    global G
+    G = _load_graph()
     try:
         path = nx.shortest_path(G, source=source_id, target=target_id)
         return {"status": "success", "path": path}
@@ -39,6 +67,8 @@ def get_shortest_path_tool(source_id: str, target_id: str) -> dict:
 
 def get_graph_summary_tool() -> dict:
     """Get a summary of the current graph."""
+    global G
+    G = _load_graph()
     return {
         "status": "success",
         "node_count": G.number_of_nodes(),
