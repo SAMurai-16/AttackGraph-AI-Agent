@@ -76,3 +76,333 @@ def get_graph_summary_tool() -> dict:
         "nodes": list(G.nodes(data=True)),
         "edges": list(G.edges(data=True))
     }
+
+def get_neighbours_tool(node_id: str) -> dict:
+    """Get the predecessors and successors of a specific node."""
+    global G
+    G = _load_graph()
+    if not G.has_node(node_id):
+        return {"status": "error", "message": f"Node {node_id} not found in graph."}
+    
+    successors = list(G.successors(node_id))
+    predecessors = list(G.predecessors(node_id))
+    
+    return {
+        "status": "success",
+        "node_id": node_id,
+        "successors": successors,
+        "predecessors": predecessors
+    }
+
+def reset_graph_tool() -> dict:
+    """Wipe the entire graph clean (for testing)."""
+    global G
+    G = nx.MultiDiGraph()
+    _save_graph(G)
+    return {"status": "success", "message": "Graph has been completely wiped."}
+
+PATTERNS = {
+    "ddos": {
+        "high_packet_rate":       30,
+        "multiple_source_ips":    25,
+        "syn_flood":              20,
+        "udp_amplification":      15,
+        "target_unavailability":  10,
+    },
+    "cloud_identity": {
+        "impossible_travel":          35,
+        "new_device_user_agent":      20,
+        "mass_api_calls":             20,
+        "privilege_escalation_call":  15,
+        "oauth_token_reuse":          10,
+    },
+    "brute_force": {
+        "failed_logins":           15,
+        "new_device":              20,
+        "credential_dumping_tool": 30,
+        "password_spray_pattern":  25,
+        "hash_passing_event":      10,
+    },
+    "malware_ransomware": {
+        "encoded_powershell":    25,
+        "office_macro_spawn":    25,
+        "c2_beacon":             20,
+        "mass_file_encryption":  30,
+        "shadow_copy_deletion":  20,
+        "known_hash_ioc":        10,
+    },
+    "lateral_movement": {
+        "multi_host_logon":       25,
+        "psexec_usage":           30,
+        "wmi_remote_execution":   25,
+        "rdp_to_new_host":        20,
+        "pass_the_ticket":        10,
+    },
+}
+
+def get_investigation_playbook_tool(attack_type: str) -> dict:
+    """Return the evidence tags and weights to guide the AI investigation without giving exact queries."""
+    if attack_type not in PATTERNS:
+        return {"status": "error", "message": f"Unknown attack type: {attack_type}"}
+    return {
+        "status": "success",
+        "attack_type": attack_type,
+        "evidence_weights": PATTERNS[attack_type]
+    }
+
+def score_hypotheses_tool() -> dict:
+    """For each attack pattern, scan graph edges for evidence tags, compute score and normalise to probability."""
+    global G
+    G = _load_graph()
+    
+    observed_evidence = set()
+    for _, _, data in G.edges(data=True):
+        ev = data.get("evidence")
+        if ev:
+            observed_evidence.add(ev)
+
+    results = []
+    for attack, weights in PATTERNS.items():
+        hit_evidence    = {e: w for e, w in weights.items() if e in observed_evidence}
+        score           = sum(hit_evidence.values())
+        total_possible  = sum(weights.values())
+        probability     = round((score / total_possible) * 100, 1) if total_possible else 0
+
+        results.append({
+            "attack":      attack,
+            "probability": probability,
+            "score":       score,
+            "max_score":   total_possible,
+            "evidence":    list(hit_evidence.keys()),
+            "missing":     [e for e in weights if e not in observed_evidence],
+        })
+
+    results.sort(key=lambda x: x["probability"], reverse=True)
+    return {
+        "status": "success",
+        "hypotheses": results, 
+        "top": results[0] if results else None
+    }
+
+MITRE_MAP = {
+    "ddos": {
+        "tactics":    ["Impact"],
+        "techniques": [
+            {"id": "T1498",     "name": "Network Denial of Service"},
+            {"id": "T1498.001", "name": "Direct Network Flood"},
+            {"id": "T1498.002", "name": "Reflection Amplification"},
+            {"id": "T1499",     "name": "Endpoint Denial of Service"},
+        ]
+    },
+    "cloud_identity": {
+        "tactics":    ["Initial Access", "Persistence", "Collection"],
+        "techniques": [
+            {"id": "T1078.004", "name": "Valid Accounts: Cloud Accounts"},
+            {"id": "T1110.003", "name": "Password Spraying"},
+            {"id": "T1098.003", "name": "Account Manipulation: Add Cloud Account"},
+            {"id": "T1530",     "name": "Data from Cloud Storage"},
+        ]
+    },
+    "brute_force": {
+        "tactics":    ["Credential Access"],
+        "techniques": [
+            {"id": "T1110",     "name": "Brute Force"},
+            {"id": "T1110.001", "name": "Password Guessing"},
+            {"id": "T1110.003", "name": "Password Spraying"},
+            {"id": "T1003",     "name": "OS Credential Dumping"},
+            {"id": "T1550.002", "name": "Pass the Hash"},
+        ]
+    },
+    "malware_ransomware": {
+        "tactics":    ["Execution", "Command and Control", "Impact"],
+        "techniques": [
+            {"id": "T1566.001", "name": "Spear Phishing Attachment"},
+            {"id": "T1059.001", "name": "PowerShell"},
+            {"id": "T1071.001", "name": "Application Layer Protocol"},
+            {"id": "T1486",     "name": "Data Encrypted for Impact"},
+            {"id": "T1490",     "name": "Inhibit System Recovery"},
+        ]
+    },
+    "lateral_movement": {
+        "tactics":    ["Lateral Movement"],
+        "techniques": [
+            {"id": "T1021.001", "name": "Remote Desktop Protocol"},
+            {"id": "T1021.002", "name": "SMB/Windows Admin Shares"},
+            {"id": "T1047",     "name": "WMI Remote Execution"},
+            {"id": "T1569.002", "name": "System Services: Service Execution"},
+            {"id": "T1550.003", "name": "Pass the Ticket"},
+        ]
+    },
+}
+
+def map_mitre_tool(attack_type: str) -> dict:
+    """Return MITRE tactic and technique IDs for a given attack type."""
+    if attack_type not in MITRE_MAP:
+        return {"status": "error", "message": f"No MITRE mapping found for attack type: {attack_type}"}
+    
+    return {
+        "status": "success",
+        "attack_type": attack_type,
+        "mitre_mapping": MITRE_MAP[attack_type]
+    }
+
+def generate_attack_path_tool(patient_zero_id: str) -> dict:
+    """Build a time-ordered attack chain from patient zero, filtering for edges with evidence."""
+    from datetime import datetime
+    
+    global G
+    G = _load_graph()
+    
+    if not G.has_node(patient_zero_id):
+        return {"status": "error", "message": f"Patient zero node '{patient_zero_id}' not found in graph."}
+
+    visited = set()
+    queue = [patient_zero_id]
+    chain = []
+    path_evidence = set()
+    
+    while queue:
+        node = queue.pop(0)
+        if node in visited:
+            continue
+        visited.add(node)
+        
+        # Traverse outbound edges
+        for nxt in G.successors(node):
+            # For MultiDiGraph, get all edge dicts between node and nxt
+            edge_data_dict = G.get_edge_data(node, nxt)
+            if not edge_data_dict:
+                continue
+                
+            for key, edge in edge_data_dict.items():
+                # EVIDENCE FILTER: Only include edges that have an evidence tag!
+                if not edge.get("evidence"):
+                    continue
+                    
+                path_evidence.add(edge.get("evidence"))
+                    
+                chain.append({
+                    "from":      node,
+                    "to":        nxt,
+                    "relation":  edge.get("edge_type", "UNKNOWN"),
+                    "time":      edge.get("time", "T+?"),
+                    "evidence":  edge.get("evidence"),
+                    "severity":  edge.get("severity", "unknown")
+                })
+                # Add destination to queue
+                if nxt not in visited and nxt not in queue:
+                    queue.append(nxt)
+
+    # Sort by timestamp
+    def _ts(step):
+        try:
+            return datetime.fromisoformat(step["time"].replace("Z", "+00:00"))
+        except Exception:
+            return datetime.min
+
+    chain.sort(key=_ts)
+    
+    # Calculate subgraph score based solely on this path's evidence
+    path_scores = []
+    for attack, weights in PATTERNS.items():
+        hit_evidence    = {e: w for e, w in weights.items() if e in path_evidence}
+        score           = sum(hit_evidence.values())
+        total_possible  = sum(weights.values())
+        probability     = round((score / total_possible) * 100, 1) if total_possible else 0
+        path_scores.append({
+            "attack":      attack,
+            "probability": probability,
+            "score":       score,
+            "max_score":   total_possible,
+            "evidence":    list(hit_evidence.keys()),
+            "missing":     [e for e in weights if e not in path_evidence],
+        })
+    path_scores.sort(key=lambda x: x["probability"], reverse=True)
+    top_score = path_scores[0] if path_scores else None
+
+    return {
+        "status": "success",
+        "patient_zero_id": patient_zero_id,
+        "path_score": top_score,
+        "attack_path": chain
+    }
+
+def generate_incident_report_tool(summary: str, verdict: dict, attack_path: list, mitre: dict, all_hypotheses: list = None) -> dict:
+    """Generate final incident report, save as JSON and Markdown, and return download URLs."""
+    import time
+    import json
+    from pathlib import Path
+    
+    report_id = f"IR-{int(time.time())}"
+    generated_at = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+    
+    report = {
+        "report_id": report_id,
+        "generated_at": generated_at,
+        "verdict": verdict,
+        "summary": summary,
+        "attack_path": attack_path,
+        "mitre": mitre,
+        "all_hypotheses": all_hypotheses or []
+    }
+    
+    # Path to Splunk App static directory
+    static_dir = Path(__file__).resolve().parent.parent.parent / "appserver" / "static" / "reports"
+    static_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Write JSON
+    json_path = static_dir / f"{report_id}.json"
+    json_path.write_text(json.dumps(report, indent=2))
+    
+    # Write Markdown
+    md_content = f"# Incident Report: {report_id}\n\n"
+    md_content += f"**Generated:** {generated_at}\n\n"
+    md_content += f"## Executive Summary\n{summary}\n\n"
+    
+    if verdict:
+        md_content += f"## Verdict\n"
+        md_content += f"- **Attack Type:** {verdict.get('attack', 'Unknown')}\n"
+        md_content += f"- **Probability:** {verdict.get('probability', 0)}%\n"
+        md_content += f"- **Evidence Found:** {', '.join(verdict.get('evidence', []))}\n\n"
+        
+    if mitre:
+        md_content += f"## MITRE ATT&CK Mapping\n"
+        md_content += f"- **Tactics:** {', '.join(mitre.get('tactics', []))}\n"
+        for t in mitre.get('techniques', []):
+            md_content += f"  - [{t.get('id')}] {t.get('name')}\n"
+        md_content += "\n"
+        
+    if attack_path:
+        md_content += f"## Attack Timeline\n"
+        for step in attack_path:
+            md_content += f"- **{step.get('time')}**: `{step.get('from')}` -> `{step.get('relation')}` -> `{step.get('to')}` (Evidence: {step.get('evidence')})\n"
+            
+    md_path = static_dir / f"{report_id}.md"
+    md_path.write_text(md_content)
+    
+    # Master index for dashboard
+    index_path = static_dir / "index.json"
+    index_data = []
+    if index_path.exists():
+        try:
+            index_data = json.loads(index_path.read_text())
+        except:
+            pass
+    
+    index_data.append({
+        "report_id": report_id,
+        "generated_at": generated_at,
+        "summary": summary,
+        "verdict": verdict.get('attack', 'Unknown') if verdict else 'Unknown',
+        "json_url": f"/en-US/static/app/SplunkAgent/reports/{report_id}.json",
+        "md_url": f"/en-US/static/app/SplunkAgent/reports/{report_id}.md"
+    })
+    index_path.write_text(json.dumps(index_data, indent=2))
+    
+    return {
+        "status": "success",
+        "report_id": report_id,
+        "json_download": f"/en-US/static/app/SplunkAgent/reports/{report_id}.json",
+        "markdown_download": f"/en-US/static/app/SplunkAgent/reports/{report_id}.md",
+        "message": "Report generated successfully and is available in the Splunk UI."
+    }

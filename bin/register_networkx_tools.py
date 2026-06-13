@@ -141,6 +141,252 @@ def register_networkx_tools():
                     }
                 }
             }
+        },
+        {
+            "name": "graph_get_neighbours",
+            "title": "Graph: Get Neighbours",
+            "description": "Get the predecessors and successors of a specific node.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "action": {
+                        "type": "string",
+                        "enum": ["get_neighbours"]
+                    },
+                    "node_id": {"type": "string"}
+                },
+                "required": ["action", "node_id"]
+            },
+            "_meta": {
+                "execution": {
+                    "type": "api",
+                    "method": "POST",
+                    "endpoint": "services/graph_execute_operation",
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": {
+                        "action": "$action$",
+                        "node_id": "$node_id$"
+                    }
+                }
+            }
+        },
+        {
+            "name": "graph_reset",
+            "title": "Graph: Reset",
+            "description": "Wipe the entire graph clean.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "action": {
+                        "type": "string",
+                        "enum": ["reset_graph"]
+                    }
+                },
+                "required": ["action"]
+            },
+            "_meta": {
+                "execution": {
+                    "type": "api",
+                    "method": "POST",
+                    "endpoint": "services/graph_execute_operation",
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": {
+                        "action": "$action$"
+                    }
+                }
+            }
+        },
+        {
+            "name": "graph_get_shortest_path",
+            "title": "Graph: Get Shortest Path",
+            "description": "Finds the shortest path between a source and target node.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "action": {
+                        "type": "string",
+                        "enum": ["get_shortest_path"]
+                    },
+                    "source_id": {"type": "string"},
+                    "target_id": {"type": "string"}
+                },
+                "required": ["action", "source_id", "target_id"]
+            },
+            "_meta": {
+                "execution": {
+                    "type": "api",
+                    "method": "POST",
+                    "endpoint": "services/graph_execute_operation",
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": {
+                        "action": "$action$",
+                        "source_id": "$source_id$",
+                        "target_id": "$target_id$"
+                    }
+                }
+            }
+        },
+        {
+            "name": "graph_get_investigation_playbook",
+            "title": "Graph: Get Investigation Playbook",
+            "description": "Returns the evidence tags and weights for a given attack type to guide the AI investigation.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "action": {
+                        "type": "string",
+                        "enum": ["get_investigation_playbook"]
+                    },
+                    "attack_type": {"type": "string"}
+                },
+                "required": ["action", "attack_type"]
+            },
+            "_meta": {
+                "execution": {
+                    "type": "api",
+                    "method": "POST",
+                    "endpoint": "services/graph_execute_operation",
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": {
+                        "action": "$action$",
+                        "attack_type": "$attack_type$"
+                    }
+                }
+            }
+        },
+        {
+            "name": "graph_score_hypotheses",
+            "title": "Graph: Score Hypotheses",
+            "description": "Calculates the mathematical probability for all attack patterns based on evidence tags found in the graph.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "action": {
+                        "type": "string",
+                        "enum": ["score_hypotheses"]
+                    }
+                },
+                "required": ["action"]
+            },
+            "_meta": {
+                "execution": {
+                    "type": "api",
+                    "method": "POST",
+                    "endpoint": "services/graph_execute_operation",
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": {
+                        "action": "$action$"
+                    }
+                }
+            }
+        },
+        {
+            "name": "graph_map_mitre",
+            "title": "Graph: Map MITRE",
+            "description": "Returns MITRE ATT&CK tactic and technique IDs for a given attack type.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "action": {
+                        "type": "string",
+                        "enum": ["map_mitre"]
+                    },
+                    "attack_type": {"type": "string"}
+                },
+                "required": ["action", "attack_type"]
+            },
+            "_meta": {
+                "execution": {
+                    "type": "api",
+                    "method": "POST",
+                    "endpoint": "services/graph_execute_operation",
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": {
+                        "action": "$action$",
+                        "attack_type": "$attack_type$"
+                    }
+                }
+            }
+        },
+        {
+            "name": "graph_generate_attack_path",
+            "title": "Graph: Generate Attack Path",
+            "description": "Builds a time-ordered attack chain from patient zero, filtering for edges with evidence.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "action": {
+                        "type": "string",
+                        "enum": ["generate_attack_path"]
+                    },
+                    "patient_zero_id": {"type": "string"}
+                },
+                "required": ["action", "patient_zero_id"]
+            },
+            "_meta": {
+                "execution": {
+                    "type": "api",
+                    "method": "POST",
+                    "endpoint": "services/graph_execute_operation",
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": {
+                        "action": "$action$",
+                        "patient_zero_id": "$patient_zero_id$"
+                    }
+                }
+            }
+        },
+        {
+            "name": "graph_generate_incident_report",
+            "title": "Graph: Generate Incident Report",
+            "description": "Compiles incident data into a Markdown and JSON report hosted natively in the Splunk App.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "action": {
+                        "type": "string",
+                        "enum": ["generate_incident_report"]
+                    },
+                    "summary": {"type": "string"},
+                    "verdict": {"type": "object"},
+                    "attack_path": {"type": "array"},
+                    "mitre": {"type": "object"},
+                    "all_hypotheses": {"type": "array"}
+                },
+                "required": ["action", "summary"]
+            },
+            "_meta": {
+                "execution": {
+                    "type": "api",
+                    "method": "POST",
+                    "endpoint": "services/graph_execute_operation",
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": {
+                        "action": "$action$",
+                        "summary": "$summary$",
+                        "verdict": "$verdict$",
+                        "attack_path": "$attack_path$",
+                        "mitre": "$mitre$",
+                        "all_hypotheses": "$all_hypotheses$"
+                    }
+                }
+            }
         }
     ]
 

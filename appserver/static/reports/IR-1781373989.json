@@ -1,0 +1,76 @@
+{
+  "report_id": "IR-1781373989",
+  "generated_at": "2026-06-13T18:06:29Z",
+  "verdict": {
+    "attack": "brute_force",
+    "evidence": [
+      "failed_logins"
+    ],
+    "max_score": 100,
+    "missing": [],
+    "probability": 95,
+    "score": 95
+  },
+  "summary": "The AI Agent detected a targeted brute force attack against host:MEWTWO originating from user:Alice. The attacker then successfully moved laterally via SSH to 10.0.0.5.",
+  "attack_path": [
+    {
+      "evidence": "failed_logins",
+      "from": "user:Alice",
+      "relation": "TARGETED_BY_BRUTE_FORCE",
+      "severity": "high",
+      "time": "2026-06-12T10:00:00Z",
+      "to": "host:MEWTWO"
+    },
+    {
+      "evidence": "password_spray_pattern",
+      "from": "host:MEWTWO",
+      "relation": "SSH_LOGIN",
+      "severity": "high",
+      "time": "2026-06-12T10:05:00Z",
+      "to": "10.0.0.5"
+    }
+  ],
+  "mitre": {
+    "tactics": [
+      "Credential Access"
+    ],
+    "techniques": [
+      {
+        "id": "T1110",
+        "name": "Brute Force"
+      }
+    ]
+  },
+  "all_hypotheses": [
+    {
+      "attack": "brute_force",
+      "evidence": [
+        "failed_logins"
+      ],
+      "max_score": 100,
+      "missing": [],
+      "probability": 95,
+      "score": 95
+    },
+    {
+      "attack": "ddos",
+      "evidence": [],
+      "max_score": 100,
+      "missing": [
+        "high_packet_rate"
+      ],
+      "probability": 5,
+      "score": 5
+    },
+    {
+      "attack": "lateral_movement",
+      "evidence": [],
+      "max_score": 110,
+      "missing": [
+        "multi_host_logon"
+      ],
+      "probability": 0,
+      "score": 0
+    }
+  ]
+}

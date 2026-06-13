@@ -56,6 +56,48 @@ class GraphExecuteOperationHandler(PersistentServerConnectionApplication):
                 )
             elif action == 'get_graph_summary':
                 result = networkx_tools.get_graph_summary_tool()
+            elif action == 'get_neighbours':
+                result = networkx_tools.get_neighbours_tool(data.get('node_id'))
+            elif action == 'reset_graph':
+                result = networkx_tools.reset_graph_tool()
+            elif action == 'get_investigation_playbook':
+                result = networkx_tools.get_investigation_playbook_tool(data.get('attack_type'))
+            elif action == 'score_hypotheses':
+                result = networkx_tools.score_hypotheses_tool()
+            elif action == 'map_mitre':
+                result = networkx_tools.map_mitre_tool(data.get('attack_type'))
+            elif action == 'generate_attack_path':
+                result = networkx_tools.generate_attack_path_tool(data.get('patient_zero_id'))
+            elif action == 'generate_incident_report':
+                import ast
+                
+                verdict = data.get('verdict')
+                if isinstance(verdict, str):
+                    try: verdict = json.loads(verdict)
+                    except: verdict = ast.literal_eval(verdict) if verdict else {}
+                
+                attack_path = data.get('attack_path')
+                if isinstance(attack_path, str):
+                    try: attack_path = json.loads(attack_path)
+                    except: attack_path = ast.literal_eval(attack_path) if attack_path else []
+                    
+                mitre = data.get('mitre')
+                if isinstance(mitre, str):
+                    try: mitre = json.loads(mitre)
+                    except: mitre = ast.literal_eval(mitre) if mitre else {}
+
+                all_hypotheses = data.get('all_hypotheses')
+                if isinstance(all_hypotheses, str):
+                    try: all_hypotheses = json.loads(all_hypotheses)
+                    except: all_hypotheses = ast.literal_eval(all_hypotheses) if all_hypotheses else []
+
+                result = networkx_tools.generate_incident_report_tool(
+                    data.get('summary'),
+                    verdict,
+                    attack_path,
+                    mitre,
+                    all_hypotheses
+                )
             else:
                 return {"payload": json.dumps({"error": f"Unknown action: {action}", "req": req, "data": data}), "status": 400}
             

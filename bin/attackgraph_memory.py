@@ -3,6 +3,21 @@ import json
 import urllib.request
 import urllib.error
 import ssl
+import os
+import logging
+
+from seed_handlers import ddos, cloud_identity, brute_force, malware_ransomware, lateral_movement
+
+logging.basicConfig(level=logging.INFO)
+log = logging.getLogger("attackgraph_memory")
+
+HANDLERS = {
+    "ddos":               ddos.extract,
+    "cloud_identity":     cloud_identity.extract,
+    "brute_force":        brute_force.extract,
+    "malware_ransomware": malware_ransomware.extract,
+    "lateral_movement":   lateral_movement.extract,
+}
 
 def main():
     # Splunk passes the alert payload via standard input
@@ -12,7 +27,6 @@ def main():
         sys.exit(1)
         
     # DEBUG: Write the exact payload to a file so we can see what Splunk is sending
-    import os
     debug_path = os.path.join(os.path.dirname(__file__), "debug_payload.json")
     with open(debug_path, "w") as f:
         f.write(payload_str)
@@ -26,36 +40,29 @@ def main():
     session_key = payload.get('session_key')
     server_uri = payload.get('server_uri', 'https://127.0.0.1:8089')
     result = payload.get('result', {})
+    
+    # Extract config parameters we set in savedsearches.conf
+    config = payload.get('configuration', {})
+    attack_type = config.get('attack_type', 'unclassified')
+    severity = config.get('severity', 'medium')
     search_name = payload.get('search_name', 'Unknown_Alert')
     
     if not session_key:
         print("ERROR: No session key in payload.", file=sys.stderr)
         sys.exit(3)
-        
-    # We will look for common entity fields
-    user = result.get('user') or result.get('username') or result.get('src_user')
-    src_ip = result.get('src_ip') or result.get('src')
-    dest_ip = result.get('dest_ip') or result.get('dest')
-    
-    nodes_to_add = []
-    edges_to_add = []
-    
-    if user:
-        nodes_to_add.append({"id": user, "label": "User", "props": {}})
-    if src_ip:
-        nodes_to_add.append({"id": src_ip, "label": "IP", "props": {"type": "source"}})
-    if dest_ip:
-        nodes_to_add.append({"id": dest_ip, "label": "IP", "props": {"type": "destination"}})
-        
-    # Create relationships based on what we found
-    if user and src_ip:
-        edges_to_add.append({"source": user, "target": src_ip, "relation": search_name})
-    if src_ip and dest_ip:
-        edges_to_add.append({"source": src_ip, "target": dest_ip, "relation": search_name})
-    if user and dest_ip:
-        edges_to_add.append({"source": user, "target": dest_ip, "relation": search_name})
-        
-    # Now send them to our MCP Graph Server
+
+    # Route to the correct extraction handler
+    handler = HANDLERS.get(attack_type)
+    if not handler:
+        print(f"ERROR: No handler for attack_type={attack_type}. Payload: {config}", file=sys.stderr)
+        sys.exit(4)
+
+    # Extract nodes and edges
+    graph_payload = handler(result, severity)
+    nodes_to_add = graph_payload.get("nodes", [])
+    edges_to_add = graph_payload.get("edges", [])
+
+    # Now send them to our MCP Graph Server natively
     headers = {
         'Authorization': 'Basic c2FteWFrOklpaXRtQDIwMDU=', # samyak:Iiitm@2005
         'Content-Type': 'application/json'
@@ -85,42 +92,32 @@ def main():
             print(f"ERROR: Graph Call failed: {e}", file=sys.stderr)
             return None
 
-    # Extract rich context for the edges (the events)
-    timestamp = result.get('_time') or result.get('time')
-    event_code = result.get('EventCode') or result.get('signature_id') or result.get('event_id')
-    action = result.get('action') or result.get('status') or result.get('vendor_action')
-    severity = result.get('severity') or result.get('risk_score')
-    process_name = result.get('Process_Name') or result.get('process') or result.get('app')
-    
-    edge_props = {
-        "source_alert": search_name
-    }
-    if timestamp: edge_props["time"] = timestamp
-    if event_code: edge_props["event_code"] = event_code
-    if action: edge_props["action"] = action
-    if severity: edge_props["severity"] = severity
-    if process_name: edge_props["process_name"] = process_name
+    # Add source_alert to all edge properties automatically
+    for edge in edges_to_add:
+        if "attrs" not in edge:
+            edge["attrs"] = {}
+        edge["attrs"]["source_alert"] = search_name
 
     # 1. Add all nodes
     for node in nodes_to_add:
         call_graph_endpoint({
             "action": "add_node",
             "node_id": node["id"],
-            "label": node["label"],
-            "properties": node["props"]
+            "label": node["type"],
+            "properties": node.get("attrs", {})
         })
         
     # 2. Add all edges
     for edge in edges_to_add:
         call_graph_endpoint({
             "action": "add_edge",
-            "source_id": edge["source"],
-            "target_id": edge["target"],
-            "edge_type": edge["relation"],
-            "properties": edge_props
+            "source_id": edge["src"],
+            "target_id": edge["dst"],
+            "edge_type": edge["rel"],
+            "properties": edge.get("attrs", {})
         })
         
-    print("INFO: Successfully pushed alert entities to AttackGraph Memory.")
+    print(f"INFO: Successfully pushed {len(nodes_to_add)} nodes and {len(edges_to_add)} edges to AttackGraph Memory.")
 
 if __name__ == "__main__":
     main()

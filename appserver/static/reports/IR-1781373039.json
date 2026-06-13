@@ -1,0 +1,8 @@
+{
+  "report_id": "IR-1781373039",
+  "generated_at": "2026-06-13T17:50:39Z",
+  "verdict": "{'attack': 'brute_force', 'evidence': ['failed_logins'], 'max_score': 100, 'missing': ['new_device'], 'probability': 15, 'score': 15}",
+  "summary": "Testing Phase 10 report output via MCP tool",
+  "attack_path": "[{'evidence': 'failed_logins', 'from': 'test_user_1', 'relation': 'SSH_LOGIN', 'severity': 'unknown', 'time': '2026-06-12T14:30:00Z', 'to': '10.0.0.5'}]",
+  "mitre": "{'tactics': ['Credential Access'], 'techniques': [{'id': 'T1110', 'name': 'Brute Force'}]}"
+}

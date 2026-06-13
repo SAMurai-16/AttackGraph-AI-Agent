@@ -1,0 +1,36 @@
+{
+  "report_id": "IR-1781373578",
+  "generated_at": "2026-06-13T17:59:38Z",
+  "verdict": {
+    "attack": "brute_force",
+    "evidence": [
+      "failed_logins"
+    ],
+    "max_score": 100,
+    "missing": [],
+    "probability": 100,
+    "score": 100
+  },
+  "summary": "The AI Agent detected a targeted brute force attack against host:MEWTWO originating from user:Alice. The attack has a 100% confidence score based on the timeline evidence.",
+  "attack_path": [
+    {
+      "evidence": "failed_logins",
+      "from": "user:Alice",
+      "relation": "TARGETED_BY_BRUTE_FORCE",
+      "severity": "high",
+      "time": "2026-06-12T10:00:00Z",
+      "to": "host:MEWTWO"
+    }
+  ],
+  "mitre": {
+    "tactics": [
+      "Credential Access"
+    ],
+    "techniques": [
+      {
+        "id": "T1110",
+        "name": "Brute Force"
+      }
+    ]
+  }
+}

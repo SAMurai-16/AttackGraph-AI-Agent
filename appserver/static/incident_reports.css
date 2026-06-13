@@ -1,0 +1,297 @@
+/* incident_reports.css - Premium Dashboard Styling */
+
+/* Base Dashboard Tweaks */
+#report_table_container {
+    padding: 20px;
+    background: #0f111a;
+    color: #e0e6ed;
+    border-radius: 12px;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+.table-chrome {
+    border-collapse: separate;
+    border-spacing: 0 8px;
+    width: 100%;
+}
+
+.table-chrome th {
+    background: transparent !important;
+    color: #8b9bb4 !important;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 1px;
+    border-bottom: 1px solid #1e2430 !important;
+    padding-bottom: 12px;
+}
+
+.table-chrome td {
+    background: #171b26 !important;
+    color: #c5d0e6 !important;
+    border-top: 1px solid #283142 !important;
+    border-bottom: 1px solid #283142 !important;
+    padding: 16px !important;
+    vertical-align: middle !important;
+}
+
+.table-chrome tr td:first-child {
+    border-left: 1px solid #283142 !important;
+    border-top-left-radius: 8px;
+    border-bottom-left-radius: 8px;
+}
+
+.table-chrome tr td:last-child {
+    border-right: 1px solid #283142 !important;
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+}
+
+/* Badges and Buttons */
+.badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+    background: #1e2430;
+    color: #8b9bb4;
+    border: 1px solid #283142;
+}
+
+.badge-error {
+    background: rgba(255, 75, 75, 0.15);
+    color: #ff4b4b;
+    border-color: rgba(255, 75, 75, 0.3);
+    box-shadow: 0 0 10px rgba(255, 75, 75, 0.2);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #007bff, #0056b3) !important;
+    border: none !important;
+    color: white !important;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    box-shadow: 0 0 15px rgba(0, 123, 255, 0.5);
+    transform: translateY(-1px);
+}
+
+.btn-secondary {
+    background: #1e2430 !important;
+    border: 1px solid #283142 !important;
+    color: #c5d0e6 !important;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+    background: #283142 !important;
+}
+
+/* --- Interactive View Path Row --- */
+.details-row {
+    background: #12151f !important;
+    transition: all 0.4s ease;
+}
+
+.details-row td {
+    padding: 0 !important;
+    border: none !important;
+    background: transparent !important;
+}
+
+.details-content {
+    padding: 30px;
+    border: 1px solid #283142;
+    border-top: none;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+    margin-top: -8px;
+    background: linear-gradient(180deg, #171b26 0%, #0f111a 100%);
+    box-shadow: inset 0 5px 15px rgba(0,0,0,0.3);
+    display: flex;
+    gap: 40px;
+}
+
+/* --- Probability Chart --- */
+.prob-chart {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.prob-chart h3 {
+    margin-top: 0;
+    color: #fff;
+    font-size: 16px;
+    margin-bottom: 10px;
+}
+
+.prob-bar-container {
+    background: #1e2430;
+    border-radius: 6px;
+    height: 32px;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    border: 1px solid #283142;
+    transition: all 0.2s;
+}
+
+.prob-bar-container:hover {
+    border-color: #007bff;
+    box-shadow: 0 0 10px rgba(0,123,255,0.2);
+}
+
+.prob-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #ff4b4b, #ff7e5f);
+    width: 0%;
+    transition: width 1s cubic-bezier(0.1, 0.8, 0.2, 1);
+}
+
+.prob-label {
+    position: absolute;
+    top: 0;
+    left: 12px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    color: #fff;
+    font-weight: 600;
+    font-size: 13px;
+    z-index: 2;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+}
+
+.prob-value {
+    position: absolute;
+    top: 0;
+    right: 12px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    color: #fff;
+    font-weight: bold;
+    font-size: 13px;
+    z-index: 2;
+}
+
+/* --- Attack Timeline Visualizer --- */
+.attack-timeline-wrapper {
+    flex: 2;
+    padding-left: 40px;
+    border-left: 1px solid #283142;
+}
+
+.attack-timeline-wrapper h3 {
+    margin-top: 0;
+    color: #fff;
+    font-size: 16px;
+    margin-bottom: 20px;
+}
+
+.timeline {
+    position: relative;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 16px;
+    width: 2px;
+    height: 100%;
+    background: #283142;
+}
+
+.timeline-step {
+    position: relative;
+    padding-left: 50px;
+    margin-bottom: 30px;
+}
+
+.timeline-step::before {
+    content: '';
+    position: absolute;
+    left: 10px;
+    top: 4px;
+    width: 14px;
+    height: 14px;
+    background: #171b26;
+    border: 2px solid #ff4b4b;
+    border-radius: 50%;
+    z-index: 2;
+    box-shadow: 0 0 10px rgba(255,75,75,0.6);
+}
+
+/* Pulse animation for the dots */
+.timeline-step::after {
+    content: '';
+    position: absolute;
+    left: 5px;
+    top: -1px;
+    width: 24px;
+    height: 24px;
+    background: rgba(255,75,75,0.3);
+    border-radius: 50%;
+    z-index: 1;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(0.8); opacity: 1; }
+    100% { transform: scale(1.5); opacity: 0; }
+}
+
+.timeline-content {
+    background: rgba(30, 36, 48, 0.6);
+    backdrop-filter: blur(5px);
+    border: 1px solid #283142;
+    border-radius: 8px;
+    padding: 16px;
+}
+
+.timeline-node {
+    display: inline-block;
+    padding: 4px 10px;
+    background: rgba(0, 123, 255, 0.1);
+    color: #4da3ff;
+    border: 1px solid rgba(0, 123, 255, 0.3);
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 13px;
+}
+
+.timeline-arrow {
+    display: inline-block;
+    margin: 0 10px;
+    color: #ff4b4b;
+    font-weight: bold;
+}
+
+.timeline-relation {
+    color: #ff7e5f;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.timeline-meta {
+    margin-top: 10px;
+    font-size: 12px;
+    color: #8b9bb4;
+    display: flex;
+    justify-content: space-between;
+}
+
+.timeline-evidence {
+    color: #ffd166;
+    background: rgba(255, 209, 102, 0.1);
+    padding: 2px 6px;
+    border-radius: 4px;
+}

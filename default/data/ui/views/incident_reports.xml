@@ -1,0 +1,22 @@
+<dashboard script="incident_reports.js" stylesheet="incident_reports.css">
+  <label>AI Incident Reports</label>
+  <row>
+    <panel>
+      <title>Manage AI Alerts</title>
+      <html>
+        <div id="alerts_iframe_container">
+          <p>Loading Alerts Manager...</p>
+        </div>
+      </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <html>
+        <div id="report_table_container">
+          <p>Loading AI incident reports...</p>
+        </div>
+      </html>
+    </panel>
+  </row>
+</dashboard>

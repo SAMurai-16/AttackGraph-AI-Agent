@@ -1,0 +1,18 @@
+[
+  {
+    "report_id": "IR-1781373578",
+    "generated_at": "2026-06-13T17:59:38Z",
+    "summary": "The AI Agent detected a targeted brute force attack against host:MEWTWO originating from user:Alice. The attack has a 100% confidence score based on the timeline evidence.",
+    "verdict": "brute_force",
+    "json_url": "/en-US/static/app/SplunkAgent/reports/IR-1781373578.json",
+    "md_url": "/en-US/static/app/SplunkAgent/reports/IR-1781373578.md"
+  },
+  {
+    "report_id": "IR-1781373989",
+    "generated_at": "2026-06-13T18:06:29Z",
+    "summary": "The AI Agent detected a targeted brute force attack against host:MEWTWO originating from user:Alice. The attacker then successfully moved laterally via SSH to 10.0.0.5.",
+    "verdict": "brute_force",
+    "json_url": "/en-US/static/app/SplunkAgent/reports/IR-1781373989.json",
+    "md_url": "/en-US/static/app/SplunkAgent/reports/IR-1781373989.md"
+  }
+]
