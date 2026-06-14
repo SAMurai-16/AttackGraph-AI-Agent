@@ -20,7 +20,7 @@
                      │
                      ▼
              Splunk MCP Server
-       (Extended with Custom Neo4j Tools)
+       (Extended with Custom NetworkX Tools)
          ┌───────────┴───────────┐
          │                       │ (Iterative Loop)
          ▼                       ▼
@@ -38,7 +38,7 @@ Unlike a linear automation script, the agent acts iteratively:
 
 1. **Trigger:** `Investigate Alert #4812`
 2. **Observe:** Agent queries Splunk for initial context via Splunk MCP Server.
-3. **Act:** Agent extracts entities and pushes them to the Neo4j graph via Cypher queries.
+3. **Act:** Agent extracts entities and pushes them to the networkX graph.
 4. **Reason:** Agent queries the graph for gaps (e.g., "I see a malicious IP, but how did the user get infected?").
 5. **Loop:** Agent autonomously decides to run a new Splunk query for email or web proxy logs.
 6. **Conclude:** Once evidence is sufficient, it maps to MITRE and presents the findings to reduce MTTR.
@@ -81,7 +81,7 @@ CREATE (u:User {name: 'alice'})-[:LOGGED_INTO {time: '10:05:00'}]->(h:Host {name
 
 ---
 
-## Why Neo4j?
+## Why networkX?
 
 The graph lets you ask topological and temporal questions simultaneously:
 
@@ -198,32 +198,6 @@ Use the Splunk UI Framework (React-based) to build this as a native Splunk App, 
 2. **Attack Hypotheses:** See probabilities for different attacks.
 3. **Attack Path:** Visual graph of the attack (using React Flow or Cytoscape.js).
 
----
-
-# Proposed Project Layout
-
-```text
-[+] src/attackgraph/        core package
-    [+] config.py           load Splunk + LLM settings from .env
-    [+] splunk_client.py     REST search + HEC ingest
-    [+] llm/                 provider interface + implementations
-    [+] tools.py             read-only SPL + investigation tools
-    [+] graph/               graph builder + traversal (patient zero, paths)
-    [+] patterns/            attack template library (YAML/JSON + loader)
-    [+] scoring.py           evidence detectors + deterministic scoring
-    [+] mitre.py             technique/tactic mapping
-    [+] pathgen.py           attack-path generator
-    [+] report.py            JSON + Markdown incident report
-    [+] agent.py             orchestrator (ReAct loop)
-    [+] cli.py               terminal interface
-[+] scripts/                Splunk setup + sample-data generator/loader
-[+] splunk_app/             Splunk dashboard app (Simple XML)
-[+] tests/                  pytest suite (scoring + graph)
-[+] docs/                   plan, approach, architecture
-[+] frontend/               React app (stretch)
-```
-
----
 
 # Hackathon Build Phases
 

@@ -1,0 +1,648 @@
+<dashboard version="2" theme="dark">
+  <label>Verdicts</label>
+  <description>AI-investigated security alerts: verdict, confidence, MITRE techniques, and attack path. Fed by the agent HEC verdict write-back (sourcetype=attackgraph:verdict). Every panel is draggable and resizable (Dashboard Studio). Filter by time, verdict, and security domain; pick an investigation from the dropdown or click a row in Latest investigations.</description>
+  <definition><![CDATA[
+{
+  "visualizations": {
+    "viz_header": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "## AttackGraph AI - SOC investigation command center\nOne alert in, an explainable verdict out. The agent pulls telemetry from Splunk, builds a Neo4j knowledge graph, scores competing attack hypotheses on **deterministic evidence** (the graph proves it; the LLM only explains it), links compounding weaknesses with **Deep Scan** amplification chains, and maps everything to **MITRE ATT&CK**.\n\n**Tip:** pick an investigation from the dropdown, or click any row in *Latest investigations* to drill the detail panels below. Drag any panel by its title bar and resize from the edges to rearrange this board."
+      }
+    },
+    "viz_reset": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "### [ \u21bb  RESET BOARD - clear all filters & start fresh for new events ](/app/attackgraph_ai/attackgraph_verdicts)\nReturns to defaults: latest investigation, all verdicts & domains, Gemini tab, last 7 days."
+      }
+    },
+    "viz_kpi_alerts": {
+      "type": "splunk.singlevalue",
+      "dataSources": {
+        "primary": "ds_kpi_alerts"
+      },
+      "title": "AI Verdict",
+      "options": {
+        "backgroundColor": "#1E93C4",
+        "sparklineDisplay": "off",
+        "trendDisplay": "off"
+      }
+    },
+    "viz_kpi_threats": {
+      "type": "splunk.singlevalue",
+      "dataSources": {
+        "primary": "ds_kpi_threats"
+      },
+      "title": "Security Domain",
+      "options": {
+        "backgroundColor": "#1E93C4",
+        "sparklineDisplay": "off",
+        "trendDisplay": "off"
+      },
+      "context": {
+        "threatColor": [
+          {
+            "to": 1,
+            "value": "#708794"
+          },
+          {
+            "from": 1,
+            "to": 3,
+            "value": "#1E93C4"
+          },
+          {
+            "from": 3,
+            "value": "#7B5FE0"
+          }
+        ]
+      }
+    },
+    "viz_kpi_conf": {
+      "type": "splunk.singlevalue",
+      "dataSources": {
+        "primary": "ds_kpi_conf"
+      },
+      "title": "Highest confidence",
+      "options": {
+        "unit": "%",
+        "unitPosition": "after",
+        "backgroundColor": "> primary | seriesByName('conf') | rangeValue(confColor)",
+        "sparklineDisplay": "off",
+        "trendDisplay": "off"
+      },
+      "context": {
+        "confColor": [
+          {
+            "to": 50,
+            "value": "#708794"
+          },
+          {
+            "from": 50,
+            "to": 80,
+            "value": "#1E93C4"
+          },
+          {
+            "from": 80,
+            "value": "#7B5FE0"
+          }
+        ]
+      }
+    },
+    "viz_kpi_mitre": {
+      "type": "splunk.singlevalue",
+      "dataSources": {
+        "primary": "ds_kpi_mitre"
+      },
+      "title": "MITRE techniques seen",
+      "options": {
+        "backgroundColor": "#7B5FE0",
+        "sparklineDisplay": "off",
+        "trendDisplay": "off"
+      }
+    },
+    "viz_overtime": {
+      "type": "splunk.column",
+      "dataSources": {
+        "primary": "ds_overtime"
+      },
+      "title": "Verdicts over time",
+      "options": {
+        "stackMode": "stacked",
+        "legendDisplay": "bottom",
+        "dataValuesDisplay": "off",
+        "seriesColors": [
+          "#7B5FE0",
+          "#1E93C4",
+          "#708794"
+        ]
+      }
+    },
+    "viz_distribution": {
+      "type": "splunk.pie",
+      "dataSources": {
+        "primary": "ds_distribution"
+      },
+      "title": "Verdict distribution",
+      "options": {
+        "legendDisplay": "right",
+        "seriesColors": [
+          "#7B5FE0",
+          "#1E93C4",
+          "#708794"
+        ]
+      }
+    },
+    "viz_threats_domain": {
+      "type": "splunk.bar",
+      "dataSources": {
+        "primary": "ds_threats_domain"
+      },
+      "title": "Threats by security domain",
+      "options": {
+        "legendDisplay": "off",
+        "dataValuesDisplay": "all",
+        "seriesColors": [
+          "#1E93C4"
+        ]
+      }
+    },
+    "viz_avg_conf": {
+      "type": "splunk.bar",
+      "dataSources": {
+        "primary": "ds_avg_conf"
+      },
+      "title": "Avg confidence by security domain",
+      "options": {
+        "legendDisplay": "off",
+        "dataValuesDisplay": "all",
+        "seriesColors": [
+          "#7B5FE0"
+        ]
+      }
+    },
+    "viz_path": {
+      "type": "splunk.table",
+      "dataSources": {
+        "primary": "ds_path"
+      },
+      "title": "Attack path",
+      "options": {
+        "count": 25
+      }
+    },
+    "viz_hypotheses": {
+      "type": "splunk.bar",
+      "dataSources": {
+        "primary": "ds_hypotheses"
+      },
+      "title": "Ranked hypotheses - alert $tok_alert$ (confidence)",
+      "options": {
+        "legendDisplay": "off",
+        "dataValuesDisplay": "all",
+        "xAxisTitleText": "Confidence",
+        "seriesColors": [
+          "#7B5FE0"
+        ]
+      }
+    },
+    "viz_edges": {
+      "type": "splunk.table",
+      "dataSources": {
+        "primary": "ds_edges"
+      },
+      "title": "Knowledge graph edges - alert $tok_alert$ (who acted on what)",
+      "options": {
+        "count": 50
+      }
+    },
+    "viz_top_mitre": {
+      "type": "splunk.bar",
+      "dataSources": {
+        "primary": "ds_top_mitre"
+      },
+      "title": "Top MITRE techniques (all alerts)",
+      "options": {
+        "legendDisplay": "off",
+        "dataValuesDisplay": "all",
+        "seriesColors": [
+          "#1E93C4"
+        ]
+      }
+    },
+    "viz_evidence": {
+      "type": "splunk.bar",
+      "dataSources": {
+        "primary": "ds_evidence"
+      },
+      "title": "Evidence frequency (all alerts)",
+      "options": {
+        "legendDisplay": "off",
+        "dataValuesDisplay": "all",
+        "seriesColors": [
+          "#7B5FE0"
+        ]
+      }
+    },
+    "viz_graph_link": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "### [\ud83d\udd0e View Visual Flow Graph \u2794](/app/SplunkAgent/attackgraph_graph?form.tok_alert=$tok_alert$)"
+      }
+    }
+  },
+  "dataSources": {
+    "ds_kpi_alerts": {
+      "type": "ds.search",
+      "name": "Alerts investigated",
+      "options": {
+        "query": "index=* sourcetype=attackgraph:verdict | spath | search alert_id=\"$tok_alert$\" | search domain=\"$tok_domain$\" | sort - _indextime | head 1 | table verdict",
+        "queryParameters": {
+          "earliest": "0",
+          "latest": "now"
+        }
+      }
+    },
+    "ds_kpi_threats": {
+      "type": "ds.search",
+      "name": "Confirmed threats",
+      "options": {
+        "query": "index=* sourcetype=attackgraph:verdict | spath | search alert_id=\"$tok_alert$\" | search domain=\"$tok_domain$\" | sort - _indextime | head 1 | table domain",
+        "queryParameters": {
+          "earliest": "0",
+          "latest": "now"
+        }
+      }
+    },
+    "ds_kpi_conf": {
+      "type": "ds.search",
+      "name": "Highest confidence",
+      "options": {
+        "query": "index=* sourcetype=attackgraph:verdict | spath | search alert_id=\"$tok_alert$\" | search domain=\"$tok_domain$\" | sort - _indextime | head 1 | stats max(confidence) as conf",
+        "queryParameters": {
+          "earliest": "0",
+          "latest": "now"
+        }
+      }
+    },
+    "ds_kpi_mitre": {
+      "type": "ds.search",
+      "name": "MITRE techniques seen",
+      "options": {
+        "query": "index=* sourcetype=attackgraph:verdict | spath | search alert_id=\"$tok_alert$\" | search domain=\"$tok_domain$\" | sort - _indextime | head 1 | rename \"techniques{}\" as technique | mvexpand technique | stats dc(technique) as techniques",
+        "queryParameters": {
+          "earliest": "0",
+          "latest": "now"
+        }
+      }
+    },
+    "ds_overtime": {
+      "type": "ds.search",
+      "name": "Verdicts over time",
+      "options": {
+        "query": "index=* sourcetype=attackgraph:verdict | spath | search alert_id=\"$tok_alert$\" | search domain=\"$tok_domain$\" | sort - _indextime | head 1 | timechart count by verdict",
+        "queryParameters": {
+          "earliest": "0",
+          "latest": "now"
+        }
+      }
+    },
+    "ds_distribution": {
+      "type": "ds.search",
+      "name": "Verdict distribution",
+      "options": {
+        "query": "index=* sourcetype=attackgraph:verdict | spath | search alert_id=\"$tok_alert$\" | search domain=\"$tok_domain$\" | sort - _indextime | head 1 | stats count by verdict",
+        "queryParameters": {
+          "earliest": "0",
+          "latest": "now"
+        }
+      }
+    },
+    "ds_threats_domain": {
+      "type": "ds.search",
+      "name": "Threats by security domain",
+      "options": {
+        "query": "index=* sourcetype=attackgraph:verdict | spath | search alert_id=\"$tok_alert$\" | search domain=\"$tok_domain$\" | sort - _indextime | head 1 | eval domain=if(isnull(domain) OR domain=\"\",\"Unclassified\",domain) | stats count by domain | sort - count",
+        "queryParameters": {
+          "earliest": "0",
+          "latest": "now"
+        }
+      }
+    },
+    "ds_avg_conf": {
+      "type": "ds.search",
+      "name": "Avg confidence by security domain",
+      "options": {
+        "query": "index=* sourcetype=attackgraph:verdict | spath | search alert_id=\"$tok_alert$\" | search domain=\"$tok_domain$\" | sort - _indextime | head 1 | eval domain=if(isnull(domain) OR domain=\"\",\"Unclassified\",domain) | stats avg(confidence) as avg_confidence by domain | eval avg_confidence=round(avg_confidence,0) | sort - avg_confidence",
+        "queryParameters": {
+          "earliest": "0",
+          "latest": "now"
+        }
+      }
+    },
+    "ds_path": {
+      "type": "ds.search",
+      "name": "Attack path",
+      "options": {
+        "query": "index=* sourcetype=attackgraph:verdict | spath | search alert_id=\"$tok_alert$\" | search domain=\"$tok_domain$\" | sort - _indextime | head 1 | eval step=mvzip('attack_path{}.from', mvzip('attack_path{}.relation', 'attack_path{}.to', \"] \u279c \"), \" \u279c [\") | mvexpand step | streamstats count as Step | rename step as \"Attack step\" | table Step \"Attack step\"",
+        "queryParameters": {
+          "earliest": "0",
+          "latest": "now"
+        }
+      }
+    },
+    "ds_hypotheses": {
+      "type": "ds.search",
+      "name": "Ranked hypotheses",
+      "options": {
+        "query": "index=* sourcetype=attackgraph:verdict | spath | search alert_id=\"$tok_alert$\" | search domain=\"$tok_domain$\" | sort - _indextime | head 1 | eval z=mvzip('hypotheses{}.attack', 'hypotheses{}.probability', \"|@|\") | mvexpand z | eval p=split(z, \"|@|\") | eval hypothesis=mvindex(p,0), confidence=tonumber(mvindex(p,1)) | sort - confidence | table hypothesis confidence",
+        "queryParameters": {
+          "earliest": "0",
+          "latest": "now"
+        }
+      }
+    },
+    "ds_edges": {
+      "type": "ds.search",
+      "name": "Knowledge graph edges",
+      "options": {
+        "query": "index=* sourcetype=attackgraph:verdict | spath | search alert_id=\"$tok_alert$\" | search domain=\"$tok_domain$\" | sort - _indextime | head 1 | eval z=mvzip('attack_path{}.time', mvzip('attack_path{}.from', mvzip('attack_path{}.relation', 'attack_path{}.to', \"|@|\"), \"|@|\"), \"|@|\") | mvexpand z | eval p=split(z, \"|@|\") | eval Time=mvindex(p,0), Source=mvindex(p,1), Relationship=mvindex(p,2), Target=mvindex(p,3) | eval Time=replace(Time, \"T\", \" \"), Time=replace(Time, \"Z\", \"\") | table Time Source Relationship Target",
+        "queryParameters": {
+          "earliest": "0",
+          "latest": "now"
+        }
+      }
+    },
+    "ds_top_mitre": {
+      "type": "ds.search",
+      "name": "Top MITRE techniques",
+      "options": {
+        "query": "index=* sourcetype=attackgraph:verdict | spath | search alert_id=\"$tok_alert$\" | search domain=\"$tok_domain$\" | sort - _indextime | head 1 | rename \"techniques{}\" as technique | mvexpand technique | stats count by technique | sort - count",
+        "queryParameters": {
+          "earliest": "0",
+          "latest": "now"
+        }
+      }
+    },
+    "ds_evidence": {
+      "type": "ds.search",
+      "name": "Evidence frequency",
+      "options": {
+        "query": "index=* sourcetype=attackgraph:verdict | spath | search alert_id=\"$tok_alert$\" | search domain=\"$tok_domain$\" | sort - _indextime | head 1 | rename \"evidence{}\" as evidence_signal | mvexpand evidence_signal | stats count by evidence_signal | sort - count",
+        "queryParameters": {
+          "earliest": "0",
+          "latest": "now"
+        }
+      }
+    },
+    "ds_alerts": {
+      "type": "ds.search",
+      "name": "Investigations",
+      "options": {
+        "query": "index=* sourcetype=attackgraph:verdict | spath | dedup alert_id sortby - _indextime | search verdict=\"$tok_verdict$\" | search domain=\"$tok_domain$\" | eval label=\"alert \".alert_id.\" - \".verdict.\" [\".domain.\"]\", value=alert_id | sort alert_id | table value label",
+        "queryParameters": {
+          "earliest": "0",
+          "latest": "now"
+        }
+      }
+    },
+    "ds_verdict_choices": {
+      "type": "ds.search",
+      "name": "Verdict choices",
+      "options": {
+        "query": "index=* sourcetype=attackgraph:verdict | spath | dedup alert_id | search domain=\"$tok_domain$\" | stats count by verdict | sort - count | eval label=verdict, value=verdict | table label value",
+        "queryParameters": {
+          "earliest": "0",
+          "latest": "now"
+        }
+      }
+    }
+  },
+  "inputs": {
+    "input_verdict": {
+      "type": "input.dropdown",
+      "title": "Verdict filter",
+      "dataSources": {
+        "primary": "ds_verdict_choices"
+      },
+      "options": {
+        "token": "tok_verdict",
+        "defaultValue": "*",
+        "valueField": "value",
+        "labelField": "label",
+        "items": [
+          {
+            "label": "All verdicts",
+            "value": "*"
+          }
+        ]
+      }
+    },
+    "input_domain": {
+      "type": "input.dropdown",
+      "title": "Security domain",
+      "options": {
+        "token": "tok_domain",
+        "defaultValue": "*",
+        "items": [
+          {
+            "label": "All domains",
+            "value": "*"
+          },
+          {
+            "label": "Identity",
+            "value": "Identity"
+          },
+          {
+            "label": "Network",
+            "value": "Network"
+          },
+          {
+            "label": "Endpoint (system)",
+            "value": "Endpoint"
+          },
+          {
+            "label": "Cloud",
+            "value": "Cloud"
+          }
+        ]
+      }
+    },
+    "input_investigation": {
+      "type": "input.dropdown",
+      "title": "Investigation",
+      "dataSources": {
+        "primary": "ds_alerts"
+      },
+      "options": {
+        "token": "tok_alert",
+        "defaultValue": "*",
+        "valueField": "value",
+        "labelField": "label",
+        "items": [
+          {
+            "label": "Latest investigation",
+            "value": "*"
+          }
+        ]
+      }
+    }
+  },
+  "layout": {
+    "type": "grid",
+    "options": {
+      "width": 1200,
+      "height": 3760
+    },
+    "structure": [
+      {
+        "item": "viz_reset",
+        "type": "block",
+        "position": {
+          "x": 0,
+          "y": 0,
+          "w": 1200,
+          "h": 44
+        }
+      },
+      {
+        "item": "viz_header",
+        "type": "block",
+        "position": {
+          "x": 0,
+          "y": 50,
+          "w": 1200,
+          "h": 90
+        }
+      },
+      {
+        "item": "viz_kpi_alerts",
+        "type": "block",
+        "position": {
+          "x": 0,
+          "y": 140,
+          "w": 300,
+          "h": 140
+        }
+      },
+      {
+        "item": "viz_kpi_threats",
+        "type": "block",
+        "position": {
+          "x": 300,
+          "y": 140,
+          "w": 300,
+          "h": 140
+        }
+      },
+      {
+        "item": "viz_kpi_conf",
+        "type": "block",
+        "position": {
+          "x": 600,
+          "y": 140,
+          "w": 300,
+          "h": 140
+        }
+      },
+      {
+        "item": "viz_kpi_mitre",
+        "type": "block",
+        "position": {
+          "x": 900,
+          "y": 140,
+          "w": 300,
+          "h": 140
+        }
+      },
+      {
+        "item": "viz_overtime",
+        "type": "block",
+        "position": {
+          "x": 0,
+          "y": 280,
+          "w": 600,
+          "h": 320
+        }
+      },
+      {
+        "item": "viz_distribution",
+        "type": "block",
+        "position": {
+          "x": 600,
+          "y": 280,
+          "w": 600,
+          "h": 320
+        }
+      },
+      {
+        "item": "viz_threats_domain",
+        "type": "block",
+        "position": {
+          "x": 0,
+          "y": 600,
+          "w": 600,
+          "h": 300
+        }
+      },
+      {
+        "item": "viz_avg_conf",
+        "type": "block",
+        "position": {
+          "x": 600,
+          "y": 600,
+          "w": 600,
+          "h": 300
+        }
+      },
+      {
+        "item": "viz_path",
+        "type": "block",
+        "position": {
+          "x": 0,
+          "y": 940,
+          "w": 600,
+          "h": 300
+        }
+      },
+      {
+        "item": "viz_hypotheses",
+        "type": "block",
+        "position": {
+          "x": 600,
+          "y": 900,
+          "w": 600,
+          "h": 340
+        }
+      },
+      {
+        "item": "viz_edges",
+        "type": "block",
+        "position": {
+          "x": 0,
+          "y": 1240,
+          "w": 1200,
+          "h": 360
+        }
+      },
+      {
+        "item": "viz_top_mitre",
+        "type": "block",
+        "position": {
+          "x": 0,
+          "y": 2320,
+          "w": 600,
+          "h": 320
+        }
+      },
+      {
+        "item": "viz_evidence",
+        "type": "block",
+        "position": {
+          "x": 600,
+          "y": 2320,
+          "w": 600,
+          "h": 320
+        }
+      },
+      {
+        "item": "viz_graph_link",
+        "type": "block",
+        "position": {
+          "x": 0,
+          "y": 900,
+          "w": 600,
+          "h": 60
+        }
+      }
+    ],
+    "globalInputs": [
+      "input_verdict",
+      "input_domain",
+      "input_investigation"
+    ]
+  },
+  "title": "Verdicts",
+  "description": "AI-investigated security alerts as a fully draggable, resizable Dashboard Studio board."
+}
+]]></definition>
+</dashboard>

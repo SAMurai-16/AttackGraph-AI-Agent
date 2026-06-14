@@ -47,10 +47,20 @@ def add_edge_tool(source_id: str, target_id: str, edge_type: str, properties: di
     return {"status": "success", "source_id": source_id, "target_id": target_id, "edge_type": edge_type}
 
 def get_patient_zero_tool() -> dict:
-    """Find patient zero (nodes with in-degree 0)."""
+    """Find patient zero (nodes with in-degree 0), sorted by latest activity."""
     global G
     G = _load_graph()
     patient_zeros = [n for n, in_degree in G.in_degree() if in_degree == 0]
+    
+    # Sort by the most recent outgoing edge time
+    def get_latest_time(node):
+        max_time = ""
+        for _, _, data in G.out_edges(node, data=True):
+            if data.get('time', '') > max_time:
+                max_time = data.get('time', '')
+        return max_time
+
+    patient_zeros.sort(key=get_latest_time, reverse=True)
     return {"status": "success", "patient_zeros": patient_zeros}
 
 def get_shortest_path_tool(source_id: str, target_id: str) -> dict:
@@ -246,7 +256,7 @@ def map_mitre_tool(attack_type: str) -> dict:
         "mitre_mapping": MITRE_MAP[attack_type]
     }
 
-def generate_attack_path_tool(patient_zero_id: str) -> dict:
+def generate_attack_path_tool(patient_zero_id: str, earliest_time: str = None, latest_time: str = None) -> dict:
     """Build a time-ordered attack chain from patient zero, filtering for edges with evidence."""
     from datetime import datetime
     
@@ -275,6 +285,13 @@ def generate_attack_path_tool(patient_zero_id: str) -> dict:
                 continue
                 
             for key, edge in edge_data_dict.items():
+                # TIME FILTER: Only include edges within the specified time bounds
+                edge_time = edge.get("time", "")
+                if earliest_time and edge_time < earliest_time:
+                    continue
+                if latest_time and edge_time > latest_time:
+                    continue
+                    
                 # EVIDENCE FILTER: Only include edges that have an evidence tag!
                 if not edge.get("evidence"):
                     continue
@@ -324,7 +341,8 @@ def generate_attack_path_tool(patient_zero_id: str) -> dict:
         "status": "success",
         "patient_zero_id": patient_zero_id,
         "path_score": top_score,
-        "attack_path": chain
+        "attack_path": chain,
+        "all_hypotheses": path_scores
     }
 
 def generate_incident_report_tool(summary: str, verdict: dict, attack_path: list, mitre: dict, all_hypotheses: list = None) -> dict:
@@ -399,10 +417,90 @@ def generate_incident_report_tool(summary: str, verdict: dict, attack_path: list
     })
     index_path.write_text(json.dumps(index_data, indent=2))
     
+    # Write to Splunk Monitored Log for Dashboard Studio UI
+    logs_dir = Path(__file__).resolve().parent.parent.parent / "logs"
+    logs_dir.mkdir(parents=True, exist_ok=True)
+    verdict_log_path = logs_dir / "verdicts.log"
+    
+    v_attack = verdict.get("attack", "Unknown") if verdict else "Unknown"
+    v_conf = verdict.get("probability", 0) if verdict else 0
+    domain = "Unclassified"
+    if v_attack in ["ddos", "lateral_movement"]: domain = "Network"
+    elif v_attack in ["cloud_identity", "brute_force"]: domain = "Identity"
+    elif v_attack in ["malware_ransomware"]: domain = "Endpoint"
+    
+    patient_zero = attack_path[0].get("from") if attack_path else "unknown"
+    impacted_asset = attack_path[-1].get("to") if attack_path else "unknown"
+    
+    techniques = [t.get("id") for t in mitre.get("techniques", [])] if mitre else []
+    evidence = list(set(step.get("evidence") for step in attack_path if step.get("evidence")))
+    graph_edges = [{"source": step.get("from"), "relationship": step.get("relation"), "target": step.get("to")} for step in attack_path]
+    
+    verdict_payload = {
+        "alert_id": report_id,
+        "_time": int(time.time()),
+        "verdict": v_attack,
+        "confidence": v_conf,
+        "summary": summary,
+        "domain": domain,
+        "patient_zero": patient_zero,
+        "impacted_asset": impacted_asset,
+        "techniques": techniques,
+        "evidence": evidence,
+        "attack_path": attack_path,
+        "graph_edges": graph_edges,
+        "hypotheses": all_hypotheses or []
+    }
+    
+    with open(verdict_log_path, "a", encoding="utf-8") as f:
+        f.write(json.dumps(verdict_payload) + "\n")
+    
     return {
         "status": "success",
         "report_id": report_id,
         "json_download": f"/en-US/static/app/SplunkAgent/reports/{report_id}.json",
         "markdown_download": f"/en-US/static/app/SplunkAgent/reports/{report_id}.md",
         "message": "Report generated successfully and is available in the Splunk UI."
+    }
+
+
+def get_historical_investigations_tool(patient_zero_id: str) -> dict:
+    """Retrieve summarized context of past AI investigations involving this entity."""
+    import json
+    from pathlib import Path
+
+    logs_dir = Path(__file__).resolve().parent.parent.parent / "logs"
+    verdict_log_path = logs_dir / "verdicts.log"
+    
+    if not verdict_log_path.exists():
+        return {"status": "success", "history": []}
+        
+    history = []
+    try:
+        with open(verdict_log_path, 'r', encoding='utf-8') as f:
+            for line in f:
+                if not line.strip(): continue
+                try:
+                    record = json.loads(line)
+                    if record.get('patient_zero') == patient_zero_id:
+                        history.append({
+                            "alert_id": record.get('alert_id'),
+                            "time": record.get('_time'),
+                            "verdict": record.get('verdict'),
+                            "confidence": record.get('confidence'),
+                            "impacted_asset": record.get('impacted_asset'),
+                            "summary": record.get('summary')
+                        })
+                except:
+                    continue
+    except Exception as e:
+        return {"status": "error", "message": f"Failed to read verdicts.log: {str(e)}"}
+        
+    # Sort by time descending (newest first)
+    history.sort(key=lambda x: x.get('time', 0), reverse=True)
+    
+    return {
+        "status": "success", 
+        "patient_zero_id": patient_zero_id,
+        "history": history
     }

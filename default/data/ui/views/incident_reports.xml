@@ -1,22 +1,207 @@
-<dashboard script="incident_reports.js" stylesheet="incident_reports.css">
-  <label>AI Incident Reports</label>
-  <row>
-    <panel>
-      <title>Manage AI Alerts</title>
-      <html>
-        <div id="alerts_iframe_container">
-          <p>Loading Alerts Manager...</p>
-        </div>
-      </html>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <html>
-        <div id="report_table_container">
-          <p>Loading AI incident reports...</p>
-        </div>
-      </html>
-    </panel>
-  </row>
+<dashboard version="2" theme="dark">
+  <label>Incident Reports</label>
+  <description>Latest investigations from the AI Agent. Click any row to view its full details.</description>
+  <definition><![CDATA[
+{
+  "visualizations": {
+    "viz_investigations": {
+      "type": "splunk.table",
+      "dataSources": {
+        "primary": "ds_investigations"
+      },
+      "title": "Latest investigations (click a row to inspect it below)",
+      "options": {
+        "count": 20,
+        "columnFormat": {
+          "Verdict": {
+            "color": "> table | seriesByName('Verdict') | matchValue(verdictColor)"
+          },
+          "Domain": {
+            "color": "> table | seriesByName('Domain') | matchValue(domainColor)"
+          },
+          "Confidence": {
+            "color": "> table | seriesByName('Confidence') | rangeValue(confColor)"
+          }
+        }
+      },
+      "context": {
+        "verdictColor": [
+          {
+            "match": "Inconclusive",
+            "value": "#708794"
+          },
+          {
+            "match": "Benign",
+            "value": "#708794"
+          },
+          {
+            "match": "Credential Theft",
+            "value": "#7B5FE0"
+          },
+          {
+            "match": "Lateral Movement",
+            "value": "#1E93C4"
+          },
+          {
+            "match": "Data Exfiltration",
+            "value": "#7B5FE0"
+          },
+          {
+            "match": "Privilege Escalation",
+            "value": "#1E93C4"
+          }
+        ],
+        "domainColor": [
+          {
+            "match": "Identity",
+            "value": "#7B5FE0"
+          },
+          {
+            "match": "Network",
+            "value": "#1E93C4"
+          },
+          {
+            "match": "Endpoint",
+            "value": "#708794"
+          },
+          {
+            "match": "Cloud",
+            "value": "#FFFFFF"
+          }
+        ],
+        "confColor": [
+          {
+            "to": 50,
+            "value": "#708794"
+          },
+          {
+            "from": 50,
+            "to": 80,
+            "value": "#1E93C4"
+          },
+          {
+            "from": 80,
+            "value": "#7B5FE0"
+          }
+        ]
+      },
+      "eventHandlers": [
+        {
+          "type": "drilldown.customUrl",
+          "options": {
+            "url": "/app/SplunkAgent/attackgraph_verdicts?form.tok_alert=$row.Alert ID.value$"
+          }
+        }
+      ]
+    }
+  },
+  "dataSources": {
+    "ds_investigations": {
+      "type": "ds.search",
+      "name": "Latest investigations",
+      "options": {
+        "query": "index=* sourcetype=attackgraph:verdict | spath | search verdict=\"$tok_verdict$\" | search domain=\"$tok_domain$\" | sort - _indextime | dedup alert_id | eval techniques=mvjoin('techniques{}', \", \") | eval Confidence=confidence | eval Domain=domain | eval Time=strftime(_time, \"%Y-%m-%d %H:%M:%S\") | rename alert_id as \"Alert ID\" verdict as Verdict patient_zero as \"Patient zero\" impacted_asset as \"Impacted asset\" techniques as \"MITRE techniques\" | table Time \"Alert ID\" Verdict Domain Confidence \"Patient zero\" \"Impacted asset\" \"MITRE techniques\"",
+        "queryParameters": {
+          "earliest": "$tok_time.earliest$",
+          "latest": "$tok_time.latest$"
+        }
+      }
+    },
+    "ds_verdicts": {
+      "type": "ds.search",
+      "name": "Verdicts Search",
+      "options": {
+        "query": "index=* sourcetype=attackgraph:verdict | spath | dedup verdict | table verdict | sort verdict",
+        "queryParameters": {
+          "earliest": ".earliest$",
+          "latest": ".latest$"
+        }
+      }
+    }
+  },
+  "inputs": {
+    "input_time": {
+      "type": "input.timerange",
+      "title": "Time range",
+      "options": {
+        "token": "tok_time",
+        "defaultValue": "-7d@h,now"
+      }
+    },
+    "input_domain": {
+      "type": "input.dropdown",
+      "title": "Security domain",
+      "options": {
+        "token": "tok_domain",
+        "defaultValue": "*",
+        "items": [
+          {
+            "label": "All domains",
+            "value": "*"
+          },
+          {
+            "label": "Identity",
+            "value": "Identity"
+          },
+          {
+            "label": "Network",
+            "value": "Network"
+          },
+          {
+            "label": "Endpoint",
+            "value": "Endpoint"
+          },
+          {
+            "label": "Cloud",
+            "value": "Cloud"
+          }
+        ]
+      }
+    },
+    "input_verdict": {
+      "type": "input.dropdown",
+      "title": "Verdict filter",
+      "options": {
+        "token": "tok_verdict",
+        "defaultValue": "*",
+        "items": [
+          {
+            "label": "All verdicts",
+            "value": "*"
+          }
+        ],
+        "valueField": "verdict",
+        "labelField": "verdict"
+      },
+      "dataSources": {
+        "primary": "ds_verdicts"
+      }
+    }
+  },
+  "layout": {
+    "type": "grid",
+    "options": {
+      "width": 1200,
+      "height": 800
+    },
+    "structure": [
+      {
+        "item": "viz_investigations",
+        "type": "block",
+        "position": {
+          "x": 0,
+          "y": 0,
+          "w": 1200,
+          "h": 600
+        }
+      }
+    ],
+    "globalInputs": [
+      "input_time",
+      "input_domain",
+      "input_verdict"
+    ]
+  }
+}
+]]></definition>
 </dashboard>

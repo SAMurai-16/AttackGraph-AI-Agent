@@ -115,6 +115,39 @@ def register_networkx_tools():
             }
         },
         {
+            "name": "graph_get_historical_investigations",
+            "title": "Graph: Get Historical Investigations",
+            "description": "Retrieve summarized context of past AI investigations involving this patient zero entity.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "action": {
+                        "type": "string",
+                        "enum": ["get_historical_investigations"]
+                    },
+                    "patient_zero_id": {
+                        "type": "string",
+                        "description": "The entity (e.g., user:Alice) to look up history for."
+                    }
+                },
+                "required": ["action", "patient_zero_id"]
+            },
+            "_meta": {
+                "execution": {
+                    "type": "api",
+                    "method": "POST",
+                    "endpoint": "services/graph_execute_operation",
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": {
+                        "action": "$action$",
+                        "patient_zero_id": "$patient_zero_id$"
+                    }
+                }
+            }
+        },
+        {
             "name": "graph_get_summary",
             "title": "Graph: Get Summary",
             "description": "Returns all nodes and edges in the graph.",

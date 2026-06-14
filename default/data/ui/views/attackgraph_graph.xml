@@ -1,0 +1,133 @@
+<dashboard version="2" theme="dark">
+  <label>Graph</label>
+  <description>The knowledge graph and Deep Scan amplification chain rendered as native Sankey flow graphs inside Splunk, fed by the agent verdict write-back (sourcetype=attackgraph:verdict).</description>
+  <definition><![CDATA[
+{
+  "visualizations": {
+    "viz_reset": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "### [ \u21bb  RESET BOARD - clear filters & start fresh for new events ](/app/attackgraph_ai/attackgraph_graph)\nReturns to defaults: latest investigation, all domains, last 7 days."
+      }
+    },
+    "viz_path": {
+      "type": "splunk.sankey",
+      "dataSources": {
+        "primary": "ds_path"
+      },
+      "title": "Attack path (chronological flow)"
+    }
+  },
+  "dataSources": {
+    "ds_path": {
+      "type": "ds.search",
+      "name": "Attack path flow",
+      "options": {
+        "query": "index=* sourcetype=attackgraph:verdict | spath | search alert_id=\"$tok_alert$\" | sort - _indextime | head 1 | eval z=mvzip('attack_path{}.from', mvzip('attack_path{}.relation', 'attack_path{}.to', \"|@|\"), \"|@|\") | mvexpand z | eval p=split(z, \"|@|\") | eval src=mvindex(p,0), rel=\"[\" . mvindex(p,1) . \"]\", tgt=mvindex(p,2) | eval pairs=mvappend(src . \"||\" . rel, rel . \"||\" . tgt) | mvexpand pairs | eval p2=split(pairs, \"||\") | eval source=mvindex(p2,0), target=mvindex(p2,1) | stats count as value by source target",
+        "queryParameters": {
+          "earliest": "0",
+          "latest": "now"
+        }
+      }
+    },
+    "ds_alerts": {
+      "type": "ds.search",
+      "name": "Investigations",
+      "options": {
+        "query": "index=* sourcetype=attackgraph:verdict | spath | dedup alert_id sortby - _indextime | search domain=\"$tok_domain$\" | eval label=\"alert \".alert_id.\" - \".verdict.\" [\".domain.\"]\", value=alert_id | sort alert_id | table label value",
+        "queryParameters": {
+          "earliest": "0",
+          "latest": "now"
+        }
+      }
+    }
+  },
+  "inputs": {
+    "input_alert": {
+      "type": "input.dropdown",
+      "title": "Investigation",
+      "dataSources": {
+        "primary": "ds_alerts"
+      },
+      "options": {
+        "token": "tok_alert",
+        "defaultValue": "*",
+        "valueField": "value",
+        "labelField": "label",
+        "items": [
+          {
+            "label": "Latest investigation",
+            "value": "*"
+          }
+        ]
+      }
+    },
+    "input_domain": {
+      "type": "input.dropdown",
+      "title": "Security domain",
+      "options": {
+        "token": "tok_domain",
+        "defaultValue": "*",
+        "items": [
+          {
+            "label": "All domains",
+            "value": "*"
+          },
+          {
+            "label": "Identity",
+            "value": "Identity"
+          },
+          {
+            "label": "Network",
+            "value": "Network"
+          },
+          {
+            "label": "Endpoint (system)",
+            "value": "Endpoint"
+          },
+          {
+            "label": "Cloud",
+            "value": "Cloud"
+          }
+        ]
+      }
+    }
+  },
+  "layout": {
+    "type": "grid",
+    "options": {
+      "width": 1200,
+      "height": 1270
+    },
+    "structure": [
+      {
+        "item": "viz_reset",
+        "type": "block",
+        "position": {
+          "x": 0,
+          "y": 0,
+          "w": 1200,
+          "h": 70
+        }
+      },
+      {
+        "item": "viz_path",
+        "type": "block",
+        "position": {
+          "x": 0,
+          "y": 70,
+          "w": 1200,
+          "h": 800
+        }
+      }
+    ],
+    "globalInputs": [
+      "input_domain",
+      "input_alert"
+    ]
+  },
+  "title": "Graph",
+  "description": "Knowledge graph + Deep Scan chain as native Sankey flow graphs."
+}
+]]></definition>
+</dashboard>

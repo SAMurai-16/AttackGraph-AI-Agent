@@ -68,6 +68,8 @@ class GraphExecuteOperationHandler(PersistentServerConnectionApplication):
                 result = networkx_tools.map_mitre_tool(data.get('attack_type'))
             elif action == 'generate_attack_path':
                 result = networkx_tools.generate_attack_path_tool(data.get('patient_zero_id'))
+            elif action == 'get_historical_investigations':
+                result = networkx_tools.get_historical_investigations_tool(data.get('patient_zero_id'))
             elif action == 'generate_incident_report':
                 import ast
                 

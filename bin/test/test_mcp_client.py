@@ -88,19 +88,100 @@ def main():
                 print("\n✅ Success! Result from NetworkX:")
                 print(json.dumps(call_data, indent=2))
                 
-                print("\nExecuting Graph Get Summary...")
-                summary_payload = {
+                print("\nExecuting Graph Get Playbook...")
+                playbook_payload = {
                     "method": "tools/call",
                     "params": {
-                        "name": "SplunkAgent_graph_get_summary",
+                        "name": "SplunkAgent_graph_get_investigation_playbook",
                         "arguments": {
-                            "action": "get_graph_summary"
+                            "action": "get_investigation_playbook",
+                            "attack_type": "brute_force"
                         }
                     }
                 }
-                summary_res = client.post(url, headers=headers, json=summary_payload, timeout=60.0)
-                print("\n✅ Success! Graph Summary:")
-                print(json.dumps(summary_res.json(), indent=2))
+                playbook_res = client.post(url, headers=headers, json=playbook_payload, timeout=60.0)
+                print("\n✅ Success! Playbook Result:")
+                print(json.dumps(playbook_res.json(), indent=2))
+                
+                print("\nExecuting Graph Score Hypotheses...")
+                score_payload = {
+                    "method": "tools/call",
+                    "params": {
+                        "name": "SplunkAgent_graph_score_hypotheses",
+                        "arguments": {
+                            "action": "score_hypotheses"
+                        }
+                    }
+                }
+                score_res = client.post(url, headers=headers, json=score_payload, timeout=60.0)
+                print("\n✅ Success! Score Hypotheses Result:")
+                print(json.dumps(score_res.json(), indent=2))
+                
+                print("\nExecuting Graph Map MITRE...")
+                mitre_payload = {
+                    "method": "tools/call",
+                    "params": {
+                        "name": "SplunkAgent_graph_map_mitre",
+                        "arguments": {
+                            "action": "map_mitre",
+                            "attack_type": "brute_force"
+                        }
+                    }
+                }
+                mitre_res = client.post(url, headers=headers, json=mitre_payload, timeout=60.0)
+                print("\n✅ Success! Map MITRE Result:")
+                print(json.dumps(mitre_res.json(), indent=2))
+                
+                print("\nExecuting Graph Add Node 2...")
+                node2_payload = {
+                    "method": "tools/call",
+                    "params": {
+                        "name": "SplunkAgent_graph_add_node",
+                        "arguments": {
+                            "action": "add_node",
+                            "node_id": "10.0.0.5",
+                            "label": "Server",
+                            "properties": {
+                                "name": "DB Server"
+                            }
+                        }
+                    }
+                }
+                client.post(url, headers=headers, json=node2_payload, timeout=60.0)
+                
+                print("\nExecuting Graph Add Edge (with evidence)...")
+                edge_payload = {
+                    "method": "tools/call",
+                    "params": {
+                        "name": "SplunkAgent_graph_add_edge",
+                        "arguments": {
+                            "action": "add_edge",
+                            "source_id": "test_user_1",
+                            "target_id": "10.0.0.5",
+                            "edge_type": "SSH_LOGIN",
+                            "properties": {
+                                "evidence": "failed_logins",
+                                "time": "2026-06-12T14:30:00Z"
+                            }
+                        }
+                    }
+                }
+                client.post(url, headers=headers, json=edge_payload, timeout=60.0)
+                
+                print("\nExecuting Graph Generate Attack Path...")
+                path_payload = {
+                    "method": "tools/call",
+                    "params": {
+                        "name": "SplunkAgent_graph_generate_attack_path",
+                        "arguments": {
+                            "action": "generate_attack_path",
+                            "patient_zero_id": "test_user_1"
+                        }
+                    }
+                }
+                path_res = client.post(url, headers=headers, json=path_payload, timeout=60.0)
+                print("\n✅ Success! Attack Path Result:")
+                print(json.dumps(path_res.json(), indent=2))
                 
             except Exception as tool_err:
                 print(f"\n❌ Tool Request Failed: {tool_err}")
