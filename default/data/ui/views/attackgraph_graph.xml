@@ -23,7 +23,7 @@
       "type": "ds.search",
       "name": "Attack path flow",
       "options": {
-        "query": "index=* sourcetype=attackgraph:verdict | spath | search alert_id=\"$tok_alert$\" | sort - _indextime | head 1 | eval z=mvzip('attack_path{}.from', mvzip('attack_path{}.relation', 'attack_path{}.to', \"|@|\"), \"|@|\") | mvexpand z | eval p=split(z, \"|@|\") | eval src=mvindex(p,0), rel=\"[\" . mvindex(p,1) . \"]\", tgt=mvindex(p,2) | eval pairs=mvappend(src . \"||\" . rel, rel . \"||\" . tgt) | mvexpand pairs | eval p2=split(pairs, \"||\") | eval source=mvindex(p2,0), target=mvindex(p2,1) | stats count as value by source target",
+        "query": "index=* sourcetype=attackgraph:verdict | spath | search alert_id=\"$tok_alert$\" | sort - _indextime | head 1 | eval z=mvzip('attack_path{}.time', mvzip('attack_path{}.from', mvzip('attack_path{}.relation', 'attack_path{}.to', \"|@|\"), \"|@|\"), \"|@|\") | mvexpand z | eval p=split(z, \"|@|\") | eval time=replace(replace(mvindex(p,0),\"T\",\" \"),\"Z\",\"\"), src=mvindex(p,1) . \" (\" . time . \")\", rel=\"[\" . mvindex(p,2) . \"]\", tgt=mvindex(p,3) | eval pairs=mvappend(src . \"||\" . rel, rel . \"||\" . tgt) | mvexpand pairs | eval p2=split(pairs, \"||\") | eval source=mvindex(p2,0), target=mvindex(p2,1) | stats count as value by source target",
         "queryParameters": {
           "earliest": "0",
           "latest": "now"

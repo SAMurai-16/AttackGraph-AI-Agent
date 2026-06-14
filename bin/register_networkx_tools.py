@@ -148,6 +148,34 @@ def register_networkx_tools():
             }
         },
         {
+            "name": "graph_get_system_prompt",
+            "title": "Graph: Get System Prompt (SOP)",
+            "description": "Returns the Standard Operating Procedure (SOP) instructions for the AI Agent on how to execute an investigation. Call this tool first to understand how to investigate.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "action": {
+                        "type": "string",
+                        "enum": ["get_system_prompt"]
+                    }
+                },
+                "required": ["action"]
+            },
+            "_meta": {
+                "execution": {
+                    "type": "api",
+                    "method": "POST",
+                    "endpoint": "services/graph_execute_operation",
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": {
+                        "action": "$action$"
+                    }
+                }
+            }
+        },
+        {
             "name": "graph_get_summary",
             "title": "Graph: Get Summary",
             "description": "Returns all nodes and edges in the graph.",

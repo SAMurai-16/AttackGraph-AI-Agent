@@ -70,6 +70,8 @@ class GraphExecuteOperationHandler(PersistentServerConnectionApplication):
                 result = networkx_tools.generate_attack_path_tool(data.get('patient_zero_id'))
             elif action == 'get_historical_investigations':
                 result = networkx_tools.get_historical_investigations_tool(data.get('patient_zero_id'))
+            elif action == 'get_system_prompt':
+                result = networkx_tools.get_system_prompt_tool()
             elif action == 'generate_incident_report':
                 import ast
                 

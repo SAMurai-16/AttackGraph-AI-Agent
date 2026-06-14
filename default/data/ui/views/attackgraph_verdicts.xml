@@ -100,23 +100,6 @@
         "trendDisplay": "off"
       }
     },
-    "viz_overtime": {
-      "type": "splunk.column",
-      "dataSources": {
-        "primary": "ds_overtime"
-      },
-      "title": "Verdicts over time",
-      "options": {
-        "stackMode": "stacked",
-        "legendDisplay": "bottom",
-        "dataValuesDisplay": "off",
-        "seriesColors": [
-          "#7B5FE0",
-          "#1E93C4",
-          "#708794"
-        ]
-      }
-    },
     "viz_distribution": {
       "type": "splunk.pie",
       "dataSources": {
@@ -275,22 +258,11 @@
         }
       }
     },
-    "ds_overtime": {
-      "type": "ds.search",
-      "name": "Verdicts over time",
-      "options": {
-        "query": "index=* sourcetype=attackgraph:verdict | spath | search alert_id=\"$tok_alert$\" | search domain=\"$tok_domain$\" | sort - _indextime | head 1 | timechart count by verdict",
-        "queryParameters": {
-          "earliest": "0",
-          "latest": "now"
-        }
-      }
-    },
     "ds_distribution": {
       "type": "ds.search",
       "name": "Verdict distribution",
       "options": {
-        "query": "index=* sourcetype=attackgraph:verdict | spath | search alert_id=\"$tok_alert$\" | search domain=\"$tok_domain$\" | sort - _indextime | head 1 | stats count by verdict",
+        "query": "index=* sourcetype=attackgraph:verdict | spath | search alert_id=\"$tok_alert$\" | search domain=\"$tok_domain$\" | sort - _indextime | head 1 | eval z=mvzip('hypotheses{}.attack', 'hypotheses{}.probability', \"|@|\") | mvexpand z | eval p=split(z, \"|@|\") | eval hypothesis=mvindex(p,0), confidence=tonumber(mvindex(p,1)) | stats sum(confidence) as confidence by hypothesis",
         "queryParameters": {
           "earliest": "0",
           "latest": "now"
@@ -301,7 +273,7 @@
       "type": "ds.search",
       "name": "Threats by security domain",
       "options": {
-        "query": "index=* sourcetype=attackgraph:verdict | spath | search alert_id=\"$tok_alert$\" | search domain=\"$tok_domain$\" | sort - _indextime | head 1 | eval domain=if(isnull(domain) OR domain=\"\",\"Unclassified\",domain) | stats count by domain | sort - count",
+        "query": "index=* sourcetype=attackgraph:verdict | spath | search alert_id=\"$tok_alert$\" | search domain=\"$tok_domain$\" | sort - _indextime | head 1 | eval z=mvzip('hypotheses{}.attack', 'hypotheses{}.probability', \"|@|\") | mvexpand z | eval p=split(z, \"|@|\") | eval hypothesis=mvindex(p,0), confidence=tonumber(mvindex(p,1)) | eval domain=case(hypothesis IN (\"ddos\", \"lateral_movement\"), \"Network\", hypothesis IN (\"cloud_identity\", \"brute_force\"), \"Identity\", hypothesis IN (\"malware_ransomware\"), \"Endpoint\", true(), \"Unclassified\") | stats count by domain | sort - count",
         "queryParameters": {
           "earliest": "0",
           "latest": "now"
@@ -312,7 +284,7 @@
       "type": "ds.search",
       "name": "Avg confidence by security domain",
       "options": {
-        "query": "index=* sourcetype=attackgraph:verdict | spath | search alert_id=\"$tok_alert$\" | search domain=\"$tok_domain$\" | sort - _indextime | head 1 | eval domain=if(isnull(domain) OR domain=\"\",\"Unclassified\",domain) | stats avg(confidence) as avg_confidence by domain | eval avg_confidence=round(avg_confidence,0) | sort - avg_confidence",
+        "query": "index=* sourcetype=attackgraph:verdict | spath | search alert_id=\"$tok_alert$\" | search domain=\"$tok_domain$\" | sort - _indextime | head 1 | eval z=mvzip('hypotheses{}.attack', 'hypotheses{}.probability', \"|@|\") | mvexpand z | eval p=split(z, \"|@|\") | eval hypothesis=mvindex(p,0), confidence=tonumber(mvindex(p,1)) | eval domain=case(hypothesis IN (\"ddos\", \"lateral_movement\"), \"Network\", hypothesis IN (\"cloud_identity\", \"brute_force\"), \"Identity\", hypothesis IN (\"malware_ransomware\"), \"Endpoint\", true(), \"Unclassified\") | stats avg(confidence) as avg_confidence by domain | eval avg_confidence=round(avg_confidence,0) | sort - avg_confidence",
         "queryParameters": {
           "earliest": "0",
           "latest": "now"
@@ -471,7 +443,7 @@
     "type": "grid",
     "options": {
       "width": 1200,
-      "height": 3760
+      "height": 2000
     },
     "structure": [
       {
@@ -535,22 +507,12 @@
         }
       },
       {
-        "item": "viz_overtime",
+        "item": "viz_distribution",
         "type": "block",
         "position": {
           "x": 0,
           "y": 280,
-          "w": 600,
-          "h": 320
-        }
-      },
-      {
-        "item": "viz_distribution",
-        "type": "block",
-        "position": {
-          "x": 600,
-          "y": 280,
-          "w": 600,
+          "w": 1200,
           "h": 320
         }
       },
@@ -609,7 +571,7 @@
         "type": "block",
         "position": {
           "x": 0,
-          "y": 2320,
+          "y": 1620,
           "w": 600,
           "h": 320
         }
@@ -619,7 +581,7 @@
         "type": "block",
         "position": {
           "x": 600,
-          "y": 2320,
+          "y": 1620,
           "w": 600,
           "h": 320
         }

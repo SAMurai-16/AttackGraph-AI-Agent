@@ -14,5 +14,85 @@
     "verdict": "brute_force",
     "json_url": "/en-US/static/app/SplunkAgent/reports/IR-1781373989.json",
     "md_url": "/en-US/static/app/SplunkAgent/reports/IR-1781373989.md"
+  },
+  {
+    "report_id": "IR-1781384462",
+    "generated_at": "2026-06-13T21:01:02Z",
+    "summary": "The AI Agent investigated patient zero 'user:Alice' and successfully uncovered a verified brute_force attack chain. Deep graph analysis confirms malicious activity with 15.0% certainty.",
+    "verdict": "brute_force",
+    "json_url": "/en-US/static/app/SplunkAgent/reports/IR-1781384462.json",
+    "md_url": "/en-US/static/app/SplunkAgent/reports/IR-1781384462.md"
+  },
+  {
+    "report_id": "IR-1781384546",
+    "generated_at": "2026-06-13T21:02:26Z",
+    "summary": "The AI Agent investigated patient zero 'user:Alice' and successfully uncovered a verified brute_force attack chain. Deep graph analysis confirms malicious activity with 15.0% certainty.",
+    "verdict": "brute_force",
+    "json_url": "/en-US/static/app/SplunkAgent/reports/IR-1781384546.json",
+    "md_url": "/en-US/static/app/SplunkAgent/reports/IR-1781384546.md"
+  },
+  {
+    "report_id": "IR-1781384603",
+    "generated_at": "2026-06-13T21:03:23Z",
+    "summary": "The AI Agent investigated patient zero 'user:-' and successfully uncovered a verified brute_force attack chain. Deep graph analysis confirms malicious activity with 15.0% certainty.",
+    "verdict": "brute_force",
+    "json_url": "/en-US/static/app/SplunkAgent/reports/IR-1781384603.json",
+    "md_url": "/en-US/static/app/SplunkAgent/reports/IR-1781384603.md"
+  },
+  {
+    "report_id": "IR-1781424217",
+    "generated_at": "2026-06-14T08:03:37Z",
+    "summary": "The AI Agent investigated patient zero 'user:-' and successfully uncovered a verified brute_force attack chain. Deep graph analysis confirms malicious activity with 15.0% certainty.",
+    "verdict": "brute_force",
+    "json_url": "/en-US/static/app/SplunkAgent/reports/IR-1781424217.json",
+    "md_url": "/en-US/static/app/SplunkAgent/reports/IR-1781424217.md"
+  },
+  {
+    "report_id": "IR-1781424581",
+    "generated_at": "2026-06-14T08:09:41Z",
+    "summary": "The AI Agent investigated patient zero 'user:-' and successfully uncovered a verified brute_force attack chain. Deep graph analysis confirms malicious activity with 15.0% certainty.",
+    "verdict": "brute_force",
+    "json_url": "/en-US/static/app/SplunkAgent/reports/IR-1781424581.json",
+    "md_url": "/en-US/static/app/SplunkAgent/reports/IR-1781424581.md"
+  },
+  {
+    "report_id": "IR-1781457309",
+    "generated_at": "2026-06-14T17:15:09Z",
+    "summary": "The AI Agent investigated patient zero 'user:-' and identified a recurring pattern of failed_logins against host:mewtwo, consistent with historical investigations that flagged this entity for brute force activity. This activity aligns with the MITRE ATT&CK tactic of Credential Access, confirming a low-confidence (15.0%) but persistent brute force attack chain.",
+    "verdict": "brute_force",
+    "json_url": "/en-US/static/app/SplunkAgent/reports/IR-1781457309.json",
+    "md_url": "/en-US/static/app/SplunkAgent/reports/IR-1781457309.md"
+  },
+  {
+    "report_id": "IR-1781458368",
+    "generated_at": "2026-06-14T17:32:48Z",
+    "summary": "The AI Agent investigated patient zero 'ip:192.168.10.45' based on recent web access logs and identified a clear attack chain against 'host:webserver'. The attacker performed a brute force login followed by command execution to dump credentials (/etc/shadow), aligning with MITRE ATT&CK tactic Credential Access and confirming a brute force and credential dumping campaign with 45.0% confidence.",
+    "verdict": "brute_force",
+    "json_url": "/en-US/static/app/SplunkAgent/reports/IR-1781458368.json",
+    "md_url": "/en-US/static/app/SplunkAgent/reports/IR-1781458368.md"
+  },
+  {
+    "report_id": "IR-1781459141",
+    "generated_at": "2026-06-14T17:45:41Z",
+    "summary": "The AI Agent investigated patient zero 'ip:10.10.10.50' based on multi-attack web logs and identified a diverse attack chain against 'host:webserver'. The attacker launched multiple techniques including credential dumping, malware delivery (C2 beacon), privilege escalation (SSRF), and high packet rate scanning, with the highest probability aligning to a potential DDoS and Brute Force attempt (30.0% each).",
+    "verdict": "ddos",
+    "json_url": "/en-US/static/app/SplunkAgent/reports/IR-1781459141.json",
+    "md_url": "/en-US/static/app/SplunkAgent/reports/IR-1781459141.md"
+  },
+  {
+    "report_id": "IR-1781460588",
+    "generated_at": "2026-06-14T18:09:48Z",
+    "summary": "The AI Agent investigated patient zero 'ip:10.10.10.50' and identified a broad attack chain against 'host:webserver' that includes a newly discovered XSS script injection attempt. The attacker utilized path traversal, XSS, C2 beaconing, SSRF privilege escalation, and high packet rate scanning, indicative of a coordinated Brute Force and DDoS campaign.",
+    "verdict": "Unknown",
+    "json_url": "/en-US/static/app/SplunkAgent/reports/IR-1781460588.json",
+    "md_url": "/en-US/static/app/SplunkAgent/reports/IR-1781460588.md"
+  },
+  {
+    "report_id": "IR-1781460602",
+    "generated_at": "2026-06-14T18:10:02Z",
+    "summary": "The AI Agent investigated patient zero 'ip:192.168.10.45' and identified an expanded brute force and credential dumping campaign against 'host:webserver'. Additional SPL log analysis revealed previously missed SQL injection and Web Shell Upload activities, confirming a severe web compromise and credential access attack with 45.0% confidence.",
+    "verdict": "Unknown",
+    "json_url": "/en-US/static/app/SplunkAgent/reports/IR-1781460602.json",
+    "md_url": "/en-US/static/app/SplunkAgent/reports/IR-1781460602.md"
   }
 ]

@@ -351,6 +351,20 @@ def generate_incident_report_tool(summary: str, verdict: dict, attack_path: list
     import json
     from pathlib import Path
     
+    # Ensure arguments are proper objects (MCP variable substitution passes them as JSON strings)
+    if isinstance(verdict, str):
+        try: verdict = json.loads(verdict)
+        except: verdict = {}
+    if isinstance(attack_path, str):
+        try: attack_path = json.loads(attack_path)
+        except: attack_path = []
+    if isinstance(mitre, str):
+        try: mitre = json.loads(mitre)
+        except: mitre = {}
+    if isinstance(all_hypotheses, str):
+        try: all_hypotheses = json.loads(all_hypotheses)
+        except: all_hypotheses = []
+        
     report_id = f"IR-{int(time.time())}"
     generated_at = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
     
@@ -503,4 +517,38 @@ def get_historical_investigations_tool(patient_zero_id: str) -> dict:
         "status": "success", 
         "patient_zero_id": patient_zero_id,
         "history": history
+    }
+
+
+def get_system_prompt_tool() -> dict:
+    """Return the Standard Operating Procedure (SOP) for the AI Agent."""
+    prompt = """
+# Splunk Incident Investigation Agent - Standard Operating Procedure (SOP)
+
+You are an autonomous AI Agent operating within Splunk. Your goal is to investigate a specific security alert or a compromised entity (Patient Zero), traverse the attack graph, identify the threat, and generate an Incident Report.
+
+Whenever you are asked to investigate an alert, you MUST follow this exact 6-step workflow in order:
+
+## Step 1: Historical Context Check
+If a specific entity (like `user:Alice`) is provided, ALWAYS call `graph_get_historical_investigations` first. This tells you if the AI has already convicted this user in the past. If you find prior investigations, use this context to avoid redundant work and link the new alert to a potential repeat offense.
+
+## Step 2: Patient Zero Identification
+If you were NOT given a specific entity to investigate, call `graph_get_patient_zero` to find the most recent compromised entity.
+
+## Step 3: Graph Traversal & Expansion
+Call `graph_generate_attack_path` using the Patient Zero ID. This will return the known attack path, the most probable attack type (Hypothesis), and evidence. 
+**CRITICAL**: If the graph data seems incomplete or insufficient to reach a high-confidence verdict, you MUST write SPL queries to search the Splunk backend for additional evidence logs. When you find missing evidence, use `graph_add_node` and `graph_add_edge` to dynamically inject the missing connections into the graph, and then re-evaluate the attack path!
+
+## Step 4: MITRE ATT&CK Mapping
+Take the top attack hypothesis identified in Step 3 and call `graph_map_mitre` to map the campaign to official MITRE tactics and techniques.
+
+## Step 5: Draft Executive Summary
+Synthesize everything you have learned (historical context, newly added edges, the attack path, and the MITRE framework) into a concise, professional 2-sentence executive summary.
+
+## Step 6: Generate Incident Report
+Finally, call `graph_generate_incident_report` passing your summary, the verdict, the attack path, the MITRE mapping, and all hypotheses. This will officially close the investigation and publish the report to the Splunk dashboard. Do not stop until this tool is successfully called.
+"""
+    return {
+        "status": "success",
+        "system_prompt": prompt.strip()
     }
