@@ -1,14 +1,17 @@
 import requests
 import json
 
+import os
+from dotenv import load_dotenv
+load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))
 
 SPLUNK_HOST = "localhost"
 SPLUNK_PORT = 8089
-USERNAME = "samyak"
-PASSWORD = "Iiitm@2005"
+USERNAME = os.environ.get("SPLUNK_USERNAME", "admin")
+PASSWORD = os.environ.get("SPLUNK_PASSWORD", "admin")
 BASE_URL = f"https://{SPLUNK_HOST}:{SPLUNK_PORT}"
 
-def register_networkx_tools():
+def register_tools():
     url = f"{BASE_URL}/services/mcp_tools/batch_replace"
     
     # We map all graph operations to the same Splunk REST endpoint, using the "action" field in the schema.
@@ -33,6 +36,7 @@ def register_networkx_tools():
                 "required": ["action", "node_id", "label"]
             },
             "_meta": {
+                "tags": ["graph", "node", "add"],
                 "execution": {
                     "type": "api",
                     "method": "POST",
@@ -69,6 +73,7 @@ def register_networkx_tools():
                 "required": ["action", "source_id", "target_id", "edge_type"]
             },
             "_meta": {
+                "tags": ["graph", "edge", "add", "evidence"],
                 "execution": {
                     "type": "api",
                     "method": "POST",
@@ -101,6 +106,7 @@ def register_networkx_tools():
                 "required": ["action"]
             },
             "_meta": {
+                "tags": ["investigation", "patient_zero", "start", "seed"],
                 "execution": {
                     "type": "api",
                     "method": "POST",
@@ -133,6 +139,7 @@ def register_networkx_tools():
                 "required": ["action", "patient_zero_id"]
             },
             "_meta": {
+                "tags": ["history", "context", "past_investigations"],
                 "execution": {
                     "type": "api",
                     "method": "POST",
@@ -162,6 +169,7 @@ def register_networkx_tools():
                 "required": ["action"]
             },
             "_meta": {
+                "tags": ["START_HERE", "sop", "instructions", "workflow", "playbook"],
                 "execution": {
                     "type": "api",
                     "method": "POST",
@@ -190,6 +198,7 @@ def register_networkx_tools():
                 "required": ["action"]
             },
             "_meta": {
+                "tags": ["graph", "summary", "overview"],
                 "execution": {
                     "type": "api",
                     "method": "POST",
@@ -219,6 +228,7 @@ def register_networkx_tools():
                 "required": ["action", "node_id"]
             },
             "_meta": {
+                "tags": ["graph", "neighbours", "traversal"],
                 "execution": {
                     "type": "api",
                     "method": "POST",
@@ -248,6 +258,7 @@ def register_networkx_tools():
                 "required": ["action"]
             },
             "_meta": {
+                "tags": ["graph", "reset", "clear", "wipe"],
                 "execution": {
                     "type": "api",
                     "method": "POST",
@@ -278,6 +289,7 @@ def register_networkx_tools():
                 "required": ["action", "source_id", "target_id"]
             },
             "_meta": {
+                "tags": ["graph", "path", "shortest", "routing"],
                 "execution": {
                     "type": "api",
                     "method": "POST",
@@ -309,6 +321,7 @@ def register_networkx_tools():
                 "required": ["action", "attack_type"]
             },
             "_meta": {
+                "tags": ["playbook", "evidence", "weights", "scoring"],
                 "execution": {
                     "type": "api",
                     "method": "POST",
@@ -338,6 +351,7 @@ def register_networkx_tools():
                 "required": ["action"]
             },
             "_meta": {
+                "tags": ["investigation", "scoring", "hypothesis", "probability"],
                 "execution": {
                     "type": "api",
                     "method": "POST",
@@ -367,6 +381,7 @@ def register_networkx_tools():
                 "required": ["action", "attack_type"]
             },
             "_meta": {
+                "tags": ["mitre", "tactics", "techniques", "framework"],
                 "execution": {
                     "type": "api",
                     "method": "POST",
@@ -397,6 +412,7 @@ def register_networkx_tools():
                 "required": ["action", "patient_zero_id"]
             },
             "_meta": {
+                "tags": ["investigation", "attack_path", "timeline", "killchain"],
                 "execution": {
                     "type": "api",
                     "method": "POST",
@@ -431,6 +447,7 @@ def register_networkx_tools():
                 "required": ["action", "summary"]
             },
             "_meta": {
+                "tags": ["report", "incident", "summary", "dashboard", "finish"],
                 "execution": {
                     "type": "api",
                     "method": "POST",
@@ -471,4 +488,4 @@ def register_networkx_tools():
         print(f"❌ Error {response.status_code}: {response.text}")
 
 if __name__ == "__main__":
-    register_networkx_tools()
+    register_tools()

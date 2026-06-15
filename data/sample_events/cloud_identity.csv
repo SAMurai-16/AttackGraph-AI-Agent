@@ -1,0 +1,6 @@
+_time,user,location,action,status,user_agent
+"2026-06-15T10:00:01.000Z",alice@corp.com,New York,login,success,Mozilla/5.0
+"2026-06-15T10:15:00.000Z",alice@corp.com,Moscow,login,success,curl/7.68.0
+"2026-06-15T10:15:05.000Z",alice@corp.com,Moscow,api_call_mass_download,success,curl/7.68.0
+"2026-06-15T10:15:10.000Z",alice@corp.com,Moscow,add_admin_role,success,curl/7.68.0
+"2026-06-15T10:15:15.000Z",alice@corp.com,Moscow,oauth_token_refresh,success,curl/7.68.0

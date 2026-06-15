@@ -9,7 +9,7 @@ import logging
 from seed_handlers import ddos, cloud_identity, brute_force, malware_ransomware, lateral_movement
 
 logging.basicConfig(level=logging.INFO)
-log = logging.getLogger("attackgraph_memory")
+log = logging.getLogger("seed_graph")
 
 HANDLERS = {
     "ddos":               ddos.extract,
@@ -26,11 +26,7 @@ def main():
         print("ERROR: No payload received from Splunk.", file=sys.stderr)
         sys.exit(1)
         
-    # DEBUG: Write the exact payload to a file so we can see what Splunk is sending
-    debug_path = os.path.join(os.path.dirname(__file__), "debug_payload.json")
-    with open(debug_path, "w") as f:
-        f.write(payload_str)
-        
+
     try:
         payload = json.loads(payload_str)
     except Exception as e:
@@ -63,8 +59,14 @@ def main():
     edges_to_add = graph_payload.get("edges", [])
 
     # Now send them to our MCP Graph Server natively
+    from dotenv import load_dotenv
+    import base64
+    load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))
+    splunk_user = os.environ.get("SPLUNK_USERNAME", "admin")
+    splunk_pass = os.environ.get("SPLUNK_PASSWORD", "admin")
+    auth_b64 = base64.b64encode(f"{splunk_user}:{splunk_pass}".encode('utf-8')).decode('utf-8')
     headers = {
-        'Authorization': 'Basic c2FteWFrOklpaXRtQDIwMDU=', # samyak:Iiitm@2005
+        'Authorization': f'Basic {auth_b64}',
         'Content-Type': 'application/json'
     }
     
@@ -83,12 +85,8 @@ def main():
         try:
             with urllib.request.urlopen(req, context=ctx) as response:
                 res_data = response.read().decode('utf-8')
-                with open(os.path.join(os.path.dirname(__file__), "debug_mcp.json"), "a") as f:
-                    f.write(f"\\n--- graph_execute_operation ---\\n" + res_data)
                 return json.loads(res_data)
         except Exception as e:
-            with open(os.path.join(os.path.dirname(__file__), "debug_mcp.json"), "a") as f:
-                f.write(f"\\n--- graph_execute_operation ERROR ---\\n" + str(e))
             print(f"ERROR: Graph Call failed: {e}", file=sys.stderr)
             return None
 

@@ -5,7 +5,7 @@ from splunk.persistconn.application import PersistentServerConnectionApplication
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'tools'))
-import networkx_tools
+import tools
 
 class GraphExecuteOperationHandler(PersistentServerConnectionApplication):
     def __init__(self, command_line=None, command_arg=None):
@@ -41,37 +41,37 @@ class GraphExecuteOperationHandler(PersistentServerConnectionApplication):
             result = {}
             
             if action == 'add_node':
-                result = networkx_tools.add_node_tool(
+                result = tools.add_node_tool(
                     data.get('node_id'), data.get('label'), properties
                 )
             elif action == 'add_edge':
-                result = networkx_tools.add_edge_tool(
+                result = tools.add_edge_tool(
                     data.get('source_id'), data.get('target_id'), data.get('edge_type'), properties
                 )
             elif action == 'get_patient_zero':
-                result = networkx_tools.get_patient_zero_tool()
+                result = tools.get_patient_zero_tool()
             elif action == 'get_shortest_path':
-                result = networkx_tools.get_shortest_path_tool(
+                result = tools.get_shortest_path_tool(
                     data.get('source_id'), data.get('target_id')
                 )
             elif action == 'get_graph_summary':
-                result = networkx_tools.get_graph_summary_tool()
+                result = tools.get_graph_summary_tool()
             elif action == 'get_neighbours':
-                result = networkx_tools.get_neighbours_tool(data.get('node_id'))
+                result = tools.get_neighbours_tool(data.get('node_id'))
             elif action == 'reset_graph':
-                result = networkx_tools.reset_graph_tool()
+                result = tools.reset_graph_tool()
             elif action == 'get_investigation_playbook':
-                result = networkx_tools.get_investigation_playbook_tool(data.get('attack_type'))
+                result = tools.get_investigation_playbook_tool(data.get('attack_type'))
             elif action == 'score_hypotheses':
-                result = networkx_tools.score_hypotheses_tool()
+                result = tools.score_hypotheses_tool()
             elif action == 'map_mitre':
-                result = networkx_tools.map_mitre_tool(data.get('attack_type'))
+                result = tools.map_mitre_tool(data.get('attack_type'))
             elif action == 'generate_attack_path':
-                result = networkx_tools.generate_attack_path_tool(data.get('patient_zero_id'))
+                result = tools.generate_attack_path_tool(data.get('patient_zero_id'))
             elif action == 'get_historical_investigations':
-                result = networkx_tools.get_historical_investigations_tool(data.get('patient_zero_id'))
+                result = tools.get_historical_investigations_tool(data.get('patient_zero_id'))
             elif action == 'get_system_prompt':
-                result = networkx_tools.get_system_prompt_tool()
+                result = tools.get_system_prompt_tool()
             elif action == 'generate_incident_report':
                 import ast
                 
@@ -95,7 +95,7 @@ class GraphExecuteOperationHandler(PersistentServerConnectionApplication):
                     try: all_hypotheses = json.loads(all_hypotheses)
                     except: all_hypotheses = ast.literal_eval(all_hypotheses) if all_hypotheses else []
 
-                result = networkx_tools.generate_incident_report_tool(
+                result = tools.generate_incident_report_tool(
                     data.get('summary'),
                     verdict,
                     attack_path,

@@ -6,9 +6,18 @@ import ssl
 
 sys.stdout.reconfigure(encoding='utf-8')
 
+import base64
+import os
+from dotenv import load_dotenv
+load_dotenv(os.path.join(os.path.dirname(__file__), '..', '..', '.env'))
+
 server_uri = "https://127.0.0.1:8089"
+splunk_user = os.environ.get("SPLUNK_USERNAME", "admin")
+splunk_pass = os.environ.get("SPLUNK_PASSWORD", "admin")
+auth_b64 = base64.b64encode(f"{splunk_user}:{splunk_pass}".encode('utf-8')).decode('utf-8')
+
 headers = {
-    'Authorization': 'Basic c2FteWFrOklpaXRtQDIwMDU=', 
+    'Authorization': f'Basic {auth_b64}', 
     'Content-Type': 'application/json'
 }
 

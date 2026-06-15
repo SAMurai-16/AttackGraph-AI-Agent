@@ -4,13 +4,13 @@ import json
 
 sys.stdout.reconfigure(encoding='utf-8')
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from tools import networkx_tools
+from tools import tools
 
 def test_tool():
     print("Testing Historical Context Extraction...")
     
     # Call core tool directly
-    res = networkx_tools.get_historical_investigations_tool("user:Alice")
+    res = tools.get_historical_investigations_tool("user:Alice")
     
     # Print results
     if res.get('status') == 'success':

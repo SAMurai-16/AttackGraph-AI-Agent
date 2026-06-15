@@ -3,16 +3,25 @@ import json
 import urllib.request
 import urllib.error
 import ssl
+import base64
+import os
+from dotenv import load_dotenv
 
 # Fix unicode encoding errors for Windows terminal
 sys.stdout.reconfigure(encoding='utf-8')
 
+load_dotenv(os.path.join(os.path.dirname(__file__), '..', '..', '.env'))
+
 def main():
     print("Connecting to Splunk MCP Server to get graph summary...")
     
+    splunk_user = os.environ.get("SPLUNK_USERNAME", "admin")
+    splunk_pass = os.environ.get("SPLUNK_PASSWORD", "admin")
+    auth_b64 = base64.b64encode(f"{splunk_user}:{splunk_pass}".encode('utf-8')).decode('utf-8')
+
     server_uri = "https://127.0.0.1:8089"
     headers = {
-        'Authorization': 'Basic c2FteWFrOklpaXRtQDIwMDU=', 
+        'Authorization': f'Basic {auth_b64}', 
         'Content-Type': 'application/json'
     }
     
