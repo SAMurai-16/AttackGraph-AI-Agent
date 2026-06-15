@@ -1,9 +1,7 @@
 <nav search_view="search">
-  <view name="alert_triage" />
   <view name="attackgraph_verdicts" default="true" />
   <view name="attackgraph_graph" />
   <view name="search" />
-  <view name="analytics_workspace" />
   <view name="datasets" />
   <view name="incident_reports" />
   <a href="/manager/SplunkAgent/saved/searches">Alerts</a>

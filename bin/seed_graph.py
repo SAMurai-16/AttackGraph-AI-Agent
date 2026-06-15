@@ -35,7 +35,7 @@ def main():
         
     session_key = payload.get('session_key')
     server_uri = payload.get('server_uri', 'https://127.0.0.1:8089')
-    result = payload.get('result', {})
+    result = payload.get('result') or {}
     
     # Extract config parameters we set in savedsearches.conf
     config = payload.get('configuration', {})
