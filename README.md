@@ -41,7 +41,7 @@ graph TD
     J <-->|Proxy Tool Execution| D
 ```
 
-![Architecture](arch.png)
+![Architecture](architecture_diagram.png)
 
 ---
 
