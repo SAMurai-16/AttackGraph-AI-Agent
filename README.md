@@ -41,6 +41,8 @@ graph TD
     J <-->|Proxy Tool Execution| D
 ```
 
+![Architecture](arch.png)
+
 ---
 
 ## Agent Standard Operating Procedure (SOP)
