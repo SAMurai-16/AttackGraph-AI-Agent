@@ -76,6 +76,8 @@ The tools need to be registered with the Splunk MCP Server. The script dynamical
 python bin/register_tools.py
 ```
 
+> **Important:** Newly registered tools are **disabled by default**. After running the script, open the Splunk MCP Server app UI and enable each tool — until you do, the agent will not see them in tool discovery.
+
 ### 3. Restart Splunk
 If you modify `restmap.conf` or the names of the backend handlers (like `mcp_handler.py`), you must restart Splunk so it can reload the REST endpoints.
 ```bash
@@ -134,3 +136,53 @@ pip install -r requirements.txt
 # Run the test
 python ./bin/test/test_mcp_graph_reset.py
 ```
+
+---
+
+## Troubleshooting
+
+Most issues are environmental (Splunk not running, tools not registered, missing `.env`) rather than code bugs. Work through the checks below before assuming a regression.
+
+### Tests fail with connection errors
+*Symptoms:* `ConnectionRefusedError`, `Max retries exceeded`, or `SSL` errors when running anything under `bin/test/`.
+- Verify Splunk is running: `$SPLUNK_HOME/bin/splunk status`.
+- Confirm the REST port is reachable: `curl -k https://127.0.0.1:8089/services/server/info`.
+- The local REST endpoint uses a self-signed cert — tests intentionally pass `verify=False`. Do not point them at a remote Splunk instance.
+
+### Tests fail with `401 Unauthorized` or `Authentication failed`
+- Ensure `.env` exists at the app root (`$SPLUNK_HOME/etc/apps/SplunkAgent/.env`) with valid `SPLUNK_USERNAME` and `SPLUNK_PASSWORD`.
+- The file is loaded by `python-dotenv`; if you ran the test from a different working directory, run it from the app root.
+
+### Tool call returns `Unknown action` or `404 Not Found`
+- The MCP tool schemas are out of date. Re-run `python bin/register_tools.py` to push the latest schemas to the Splunk MCP server.
+- After re-registering, open the Splunk MCP Server app UI and **enable** any newly registered tools — they are disabled by default and will not appear in agent tool discovery until enabled.
+- Confirm the tool name you are calling is app-namespaced, e.g. `SplunkAgent_graph_reset`, not `graph_reset`.
+- If you added a new action, verify the matching `elif action == '<name>':` branch exists in [bin/mcp_handler.py](bin/mcp_handler.py).
+
+### Changes to `restmap.conf` or handler classes aren't picked up
+- Splunk caches REST endpoint handlers at startup. Restart Splunk after editing `restmap.conf` or renaming any handler file/class: `$SPLUNK_HOME/bin/splunk restart`.
+- New `action` branches inside an existing handler do **not** require a restart.
+
+### Investigation results look stale or contaminated
+- The graph is persisted to `bin/tools/graph.json` between runs. Leftover nodes/edges from previous incidents will skew patient-zero and attack-path output.
+- Call `graph_reset` (SOP step 7) to wipe state before re-running an investigation.
+
+### Alert fires but no nodes appear in the graph
+- Confirm the saved search in [default/savedsearches.conf](default/savedsearches.conf) is enabled and the `seed_graph` alert action is attached.
+- Check `$SPLUNK_HOME/var/log/splunk/python.log` and `splunkd.log` for stack traces from [bin/seed_graph.py](bin/seed_graph.py).
+- Verify the alert's `attack_type` field matches a handler in [bin/seed_handlers/](bin/seed_handlers/).
+- Edges emitted by the handler **must** carry an `evidence` tag — scoring and attack-path traversal ignore untagged edges.
+
+### Reports don't show up in the dashboard
+- Reports are written to [appserver/static/reports/](appserver/static/reports/) along with `index.json`. Confirm both the new `IR-*.json`/`.md` files and the updated `index.json` were created.
+- The dashboard serves them from `/en-US/static/app/SplunkAgent/reports/`. A hard refresh of the browser may be required.
+
+### `ImportError: No module named networkx` (or `pytz`)
+- Splunk's bundled Python imports vendored copies from `bin/networkx/` and `bin/pytz/`. Do not delete these directories — `pip` is not available in the Splunk runtime.
+- The two `networkx-*.dist-info` folders (3.2.1 and 3.6.1) coexisting is harmless.
+
+### Object arguments arrive as strings in a tool
+- MCP variable substitution sometimes delivers object-typed parameters (`properties`, `verdict`, `mitre`, `attack_path`, `all_hypotheses`) as JSON or Python-literal strings.
+- Follow the existing pattern in [bin/tools/tools.py](bin/tools/tools.py): try `json.loads`, then fall back to `ast.literal_eval`. Any new object-typed parameter must do the same.
+
+---
